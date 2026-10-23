@@ -1,5 +1,4 @@
 import { FinancialNewsItem } from '@/types';
-import { normalizeIndianSymbol } from '@/lib/utils/indian-market';
 import { VERIFIED_INDIAN_NEWS } from './dataset';
 
 export interface LiveNewsOptions {

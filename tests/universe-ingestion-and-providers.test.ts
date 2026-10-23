@@ -12,7 +12,6 @@ import {
 import {
   TrueDataProvider,
   EODHDProvider,
-  ExchangeMasterProvider,
   HybridProvider,
   getMarketDataProvider,
 } from '@/lib/market-data/providers';
@@ -21,13 +20,8 @@ import {
   upsertInstruments,
   recordSymbolAliases,
   resolveSymbolAlias,
-  getInstrumentBySymbol,
-  getInstrumentByISIN,
-  getCorporateActions,
-  upsertCorporateActions,
   getUniverseStatistics,
 } from '@/lib/db/store';
-import { searchUniverseStockCatalog } from '@/lib/market-data';
 
 describe('A. Security Master Ingestion & Multi-Exchange Reconciliation', () => {
   it('parses official NSE EQUITY_L.csv format with headers and quotes', () => {

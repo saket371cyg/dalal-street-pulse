@@ -2,19 +2,14 @@
 
 import React from 'react';
 import { StockQuote, Instrument } from '@/types';
-import { formatINR, formatVolume, formatCrores } from '@/lib/utils/indian-market';
+import { formatINR, formatVolume } from '@/lib/utils/indian-market';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  Activity,
-  Layers,
   BarChart3,
   Shield,
   HelpCircle,
-  TrendingUp,
-  TrendingDown,
   Info,
-  Clock,
   ArrowUpDown,
   Compass,
 } from 'lucide-react';

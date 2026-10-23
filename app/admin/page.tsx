@@ -4,19 +4,10 @@ import React, { useState, useEffect } from 'react';
 import {
   ShieldAlert,
   Server,
-  Database,
-  Workflow,
   Activity,
-  CheckCircle2,
-  Clock,
   Layers,
-  BarChart2,
-  AlertTriangle,
   RefreshCw,
   Building2,
-  FileCheck2,
-  Check,
-  X,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -87,6 +78,11 @@ export default function AdminDiagnosticsPage() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Market Data & Universe Ingestion Diagnostics
             </h1>
+            {loading && (
+              <Badge variant="outline" className="text-[10px] text-muted-foreground animate-pulse">
+                Fetching status...
+              </Badge>
+            )}
           </div>
           <p className="text-xs text-muted-foreground">
             Real-time status of NSE/BSE security masters, SME coverage, provider latency, and Inngest synchronization jobs.

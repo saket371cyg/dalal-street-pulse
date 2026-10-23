@@ -4,14 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Search,
-  Filter,
-  ArrowUpDown,
   ChevronRight,
   ChevronLeft,
-  Bookmark,
-  Bell,
-  ExternalLink,
-  CheckCircle2,
   XCircle,
   Info,
   AlertCircle,
@@ -20,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Table,
   TableBody,

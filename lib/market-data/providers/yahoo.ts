@@ -33,7 +33,7 @@ export class YahooFinanceProvider implements MarketDataProvider {
 
   private UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-  async discoverInstruments(options?: { segment?: 'EQUITY' | 'SME' | 'ALL'; exchange?: Exchange }): Promise<Instrument[]> {
+  async discoverInstruments(_options?: { segment?: 'EQUITY' | 'SME' | 'ALL'; exchange?: Exchange }): Promise<Instrument[]> {
     return [];
   }
 
@@ -112,27 +112,27 @@ export class YahooFinanceProvider implements MarketDataProvider {
     return [];
   }
 
-  async getFundamentals(symbol: string): Promise<CompanyFundamentals | null> {
+  async getFundamentals(_symbol: string): Promise<CompanyFundamentals | null> {
     return null;
   }
 
-  async getFinancialStatements(symbol: string): Promise<FinancialStatementRecord[]> {
+  async getFinancialStatements(_symbol: string): Promise<FinancialStatementRecord[]> {
     return [];
   }
 
-  async getCorporateActions(symbol?: string): Promise<CorporateAction[]> {
+  async getCorporateActions(_symbol?: string): Promise<CorporateAction[]> {
     return [];
   }
 
-  async getCorporateAnnouncements(symbol?: string): Promise<CorporateAnnouncement[]> {
+  async getCorporateAnnouncements(_symbol?: string): Promise<CorporateAnnouncement[]> {
     return [];
   }
 
-  async getNews(symbol?: string): Promise<FinancialNewsItem[]> {
+  async getNews(_symbol?: string): Promise<FinancialNewsItem[]> {
     return [];
   }
 
-  async getCoverageStatus(symbol: string): Promise<InstrumentCoverageStatus> {
+  async getCoverageStatus(_symbol: string): Promise<InstrumentCoverageStatus> {
     return {
       quotes: true,
       historicalOHLCV: true,

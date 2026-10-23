@@ -35,11 +35,11 @@ export class EODHDProvider implements MarketDataProvider {
   private apiToken = process.env.EODHD_API_TOKEN;
   private baseUrl = 'https://eodhd.com/api';
 
-  async discoverInstruments(options?: { segment?: 'EQUITY' | 'SME' | 'ALL'; exchange?: Exchange }): Promise<Instrument[]> {
+  async discoverInstruments(_options?: { segment?: 'EQUITY' | 'SME' | 'ALL'; exchange?: Exchange }): Promise<Instrument[]> {
     return [];
   }
 
-  async getQuote(symbol: string, exchange: Exchange = 'NSE'): Promise<StockQuote | null> {
+  async getQuote(symbol: string, _exchange: Exchange = 'NSE'): Promise<StockQuote | null> {
     const { cleanSymbol } = normalizeIndianSymbol(symbol);
     const item = VERIFIED_INDIAN_STOCKS[cleanSymbol];
     if (!item) return null;
@@ -53,7 +53,7 @@ export class EODHDProvider implements MarketDataProvider {
   async getHistoricalOHLCV(
     symbol: string,
     timeframe: '1D' | '1W' | '1M' | '3M' | '6M' | '1Y' | '5Y',
-    exchange?: Exchange
+    _exchange?: Exchange
   ): Promise<OHLCVCandle[]> {
     const { cleanSymbol } = normalizeIndianSymbol(symbol);
 
@@ -108,7 +108,7 @@ export class EODHDProvider implements MarketDataProvider {
     if (!item) return [];
 
     const statements: FinancialStatementRecord[] = [];
-    item.fundamentals.quarterlyResults.forEach((q, idx) => {
+    item.fundamentals.quarterlyResults.forEach(q => {
       statements.push({
         id: `stmt_${cleanSymbol}_${q.period}`,
         symbol: cleanSymbol,
@@ -129,11 +129,11 @@ export class EODHDProvider implements MarketDataProvider {
     return statements;
   }
 
-  async getCorporateActions(symbol?: string): Promise<CorporateAction[]> {
+  async getCorporateActions(_symbol?: string): Promise<CorporateAction[]> {
     return [];
   }
 
-  async getCorporateAnnouncements(symbol?: string): Promise<CorporateAnnouncement[]> {
+  async getCorporateAnnouncements(_symbol?: string): Promise<CorporateAnnouncement[]> {
     return [];
   }
 

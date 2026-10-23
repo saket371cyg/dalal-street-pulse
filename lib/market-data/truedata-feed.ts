@@ -253,7 +253,7 @@ export class TrueDataFeedManager extends EventEmitter {
           this.updateQuote(quote);
         }
       }
-    } catch (e) {
+    } catch {
       // In case of non-JSON binary frames or parsing error
     }
   }

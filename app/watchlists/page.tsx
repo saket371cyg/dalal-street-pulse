@@ -6,16 +6,11 @@ import {
   ListFilter,
   Plus,
   Trash2,
-  TrendingUp,
-  TrendingDown,
-  Bell,
-  ChevronRight,
-  Edit2,
   ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Table,

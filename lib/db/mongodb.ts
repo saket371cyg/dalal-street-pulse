@@ -11,7 +11,6 @@ let clientPromise: Promise<MongoClient> | null = null;
 let isConnected = false;
 
 declare global {
-  // eslint-disable-next-line no-var
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 

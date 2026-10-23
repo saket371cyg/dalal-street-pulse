@@ -8,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,11 +16,8 @@ import {
   TrendingDown,
   ArrowRight,
   Sparkles,
-  Command,
   X,
   Loader2,
-  Building2,
-  Tag,
 } from 'lucide-react';
 import { StockQuote, InstrumentCoverageStatus } from '@/types';
 import { formatINR, formatPercent } from '@/lib/utils/indian-market';

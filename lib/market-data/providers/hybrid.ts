@@ -16,7 +16,7 @@ import { TrueDataProvider } from './truedata';
 import { EODHDProvider } from './eodhd';
 import { ExchangeMasterProvider } from './exchange-master';
 import { normalizeIndianSymbol } from '@/lib/utils/indian-market';
-import { VERIFIED_INDIAN_STOCKS, VERIFIED_INDIAN_NEWS, INDIAN_MARKET_INDICES } from '../dataset';
+import { VERIFIED_INDIAN_STOCKS } from '../dataset';
 
 /**
  * Hybrid Ingestion Provider: Production tier combining Official Exchange Masters,

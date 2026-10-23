@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { MarketIndex } from '@/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Compass, ArrowUpRight, BarChart2 } from 'lucide-react';
-import { formatPercent, formatINR } from '@/lib/utils/indian-market';
+import { Compass, BarChart2 } from 'lucide-react';
+import { formatPercent } from '@/lib/utils/indian-market';
 
 export default function IndianMarketsPage() {
   const [indices, setIndices] = useState<MarketIndex[]>([]);

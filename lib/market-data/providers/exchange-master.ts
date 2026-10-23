@@ -110,14 +110,14 @@ export class ExchangeMasterProvider implements MarketDataProvider {
     return instruments;
   }
 
-  async getQuote(symbol: string, exchange?: Exchange): Promise<StockQuote | null> {
+  async getQuote(_symbol: string, _exchange?: Exchange): Promise<StockQuote | null> {
     return null; // Master provider delegates price feeds to market vendors
   }
 
   async getHistoricalOHLCV(
-    symbol: string,
-    timeframe: '1D' | '1W' | '1M' | '3M' | '6M' | '1Y' | '5Y',
-    exchange?: Exchange
+    _symbol: string,
+    _timeframe: '1D' | '1W' | '1M' | '3M' | '6M' | '1Y' | '5Y',
+    _exchange?: Exchange
   ): Promise<OHLCVCandle[]> {
     return [];
   }
@@ -126,11 +126,11 @@ export class ExchangeMasterProvider implements MarketDataProvider {
     return [];
   }
 
-  async getFundamentals(symbol: string): Promise<CompanyFundamentals | null> {
+  async getFundamentals(_symbol: string): Promise<CompanyFundamentals | null> {
     return null;
   }
 
-  async getFinancialStatements(symbol: string): Promise<FinancialStatementRecord[]> {
+  async getFinancialStatements(_symbol: string): Promise<FinancialStatementRecord[]> {
     return [];
   }
 
@@ -140,15 +140,15 @@ export class ExchangeMasterProvider implements MarketDataProvider {
     return this.seedCorporateActions.filter(c => c.symbol === cleanSymbol);
   }
 
-  async getCorporateAnnouncements(symbol?: string): Promise<CorporateAnnouncement[]> {
+  async getCorporateAnnouncements(_symbol?: string): Promise<CorporateAnnouncement[]> {
     return [];
   }
 
-  async getNews(symbol?: string): Promise<FinancialNewsItem[]> {
+  async getNews(_symbol?: string): Promise<FinancialNewsItem[]> {
     return [];
   }
 
-  async getCoverageStatus(symbol: string): Promise<InstrumentCoverageStatus> {
+  async getCoverageStatus(_symbol: string): Promise<InstrumentCoverageStatus> {
     return {
       quotes: false,
       historicalOHLCV: false,

@@ -1161,7 +1161,7 @@ export async function countRAGChunks(): Promise<number> {
   if (db) {
     try {
       return await db.collection<RAGDocumentChunk>(COLLECTIONS.RAG_CHUNKS).countDocuments();
-    } catch (e) {
+    } catch {
       // fallback
     }
   }

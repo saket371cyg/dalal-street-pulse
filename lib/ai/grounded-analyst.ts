@@ -7,8 +7,6 @@ import {
   fetchLiveIndianFinancialNews,
 } from '@/lib/market-data';
 import {
-  calculatePercentageChange,
-  calculatePeriodReturn,
   calculateSMA,
   calculateRSI,
   calculateMACD,
@@ -108,7 +106,7 @@ export async function getStockQuantitativeBundle(symbol: string): Promise<StockQ
  */
 export function buildDeterministicStockReport(
   bundle: StockQuantitativeBundle,
-  question: string
+  _question: string
 ): string {
   const { symbol, quote, fundamentals, technicals, quality, actions, news } = bundle;
   const session = getMarketSessionStatus();
@@ -198,7 +196,7 @@ export function buildDeterministicStockReport(
 export function buildDeterministicComparisonReport(
   bundleA: StockQuantitativeBundle,
   bundleB: StockQuantitativeBundle,
-  question: string
+  _question: string
 ): string {
   const qA = bundleA.quote;
   const qB = bundleB.quote;

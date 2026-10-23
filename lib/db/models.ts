@@ -1,4 +1,4 @@
-import { Db, IndexSpecification } from 'mongodb';
+import { Db } from 'mongodb';
 import { getMongoDb } from './mongodb';
 import {
   Instrument,

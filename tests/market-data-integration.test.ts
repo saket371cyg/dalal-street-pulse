@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { TrueDataFeedManager, getTrueDataFeedManager } from '@/lib/market-data/truedata-feed';
 import { TrueDataProvider } from '@/lib/market-data/providers/truedata';
 import {

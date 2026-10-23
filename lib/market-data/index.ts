@@ -5,7 +5,6 @@ import {
   OHLCVCandle,
   FinancialNewsItem,
   Exchange,
-  Instrument,
   InstrumentCoverageStatus,
   StockSearchResult,
   CorporateAction,
@@ -13,9 +12,7 @@ import {
   DataFreshness,
 } from '@/types';
 import {
-  INDIAN_MARKET_INDICES,
   VERIFIED_INDIAN_STOCKS,
-  VERIFIED_INDIAN_NEWS,
 } from './dataset';
 import { normalizeIndianSymbol } from '@/lib/utils/indian-market';
 import {

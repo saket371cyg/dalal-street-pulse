@@ -1,7 +1,6 @@
 import {
   Instrument,
   SymbolAlias,
-  Exchange,
   SyncJobHistory,
   InstrumentCoverageStatus,
 } from '@/types';

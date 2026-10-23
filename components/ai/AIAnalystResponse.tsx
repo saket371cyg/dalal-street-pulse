@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   ShieldCheck,
   AlertTriangle,
-  Info,
   ChevronDown,
   ChevronUp,
   BookOpen,
@@ -14,7 +13,6 @@ import {
   AlertCircle,
   HelpCircle,
   TrendingUp,
-  TrendingDown,
   Scale,
   Sparkles,
 } from 'lucide-react';
@@ -129,7 +127,7 @@ export function AIAnalystResponse({ data, compact = false, className = '' }: AIA
 
   return (
     <div
-      className={`rounded-xl border border-border/70 bg-card/70 backdrop-blur-sm p-4 space-y-3.5 text-xs text-foreground shadow-xs transition-all ${className}`}
+      className={`rounded-xl border border-border/70 bg-card/70 backdrop-blur-sm ${compact ? 'p-3 space-y-2.5' : 'p-4 space-y-3.5'} text-xs text-foreground shadow-xs transition-all ${className}`}
       data-testid="ai-analyst-response"
     >
       {/* 1. Direct Conclusion Header (Prominent & Scannable) */}

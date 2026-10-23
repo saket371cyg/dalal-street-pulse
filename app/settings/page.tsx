@@ -4,16 +4,13 @@ import React, { useState, useEffect } from 'react';
 import {
   Settings,
   User,
-  Bell,
   Mail,
-  Shield,
   CheckCircle2,
   Save,
   Globe,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { UserProfile } from '@/types';

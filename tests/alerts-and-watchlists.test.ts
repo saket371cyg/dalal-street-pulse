@@ -1,11 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
-  getWatchlistsByUserId,
   createWatchlist,
   addStockToWatchlist,
   removeStockFromWatchlist,
   createPriceAlert,
-  getAlertsByUserId,
 } from '@/lib/db/store';
 import { evaluatePriceAlerts } from '@/lib/alerts';
 import { analyzeIndianStock, askAIAnalyst } from '@/lib/ai';

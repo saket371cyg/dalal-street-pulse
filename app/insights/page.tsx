@@ -4,11 +4,7 @@ import React, { useState } from 'react';
 import {
   Sparkles,
   BookOpen,
-  HelpCircle,
-  TrendingUp,
-  ShieldCheck,
   Send,
-  CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

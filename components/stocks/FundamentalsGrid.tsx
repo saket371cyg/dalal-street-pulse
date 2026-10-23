@@ -9,7 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { HelpCircle, Info, ShieldCheck, PieChart } from 'lucide-react';
+import { HelpCircle, PieChart } from 'lucide-react';
 
 interface FundamentalsGridProps {
   fundamentals: CompanyFundamentals;

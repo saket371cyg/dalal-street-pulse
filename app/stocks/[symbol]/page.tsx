@@ -18,10 +18,8 @@ import {
   XCircle,
   Clock,
   Database,
-  ArrowRight,
   Info,
   Calendar,
-  DollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -59,7 +57,6 @@ function StockDetailContent() {
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
   const [aliasRedirect, setAliasRedirect] = useState<{ searchedSymbol: string; currentSymbol: string; effectiveDate: string } | null>(null);
   const [sourceAttribution, setSourceAttribution] = useState<string>('NSE & BSE Unified Master');
-  const [lastRefreshedAt, setLastRefreshedAt] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   // Real-time live quotes hook via Server-Sent Events
@@ -94,7 +91,6 @@ function StockDetailContent() {
 
   // AI Assistant Question State
   const [question, setQuestion] = useState('');
-  const [aiAnswer, setAiAnswer] = useState<string | null>(null);
   const [aiResult, setAiResult] = useState<RAGAskResponse | null>(null);
   const [askingAi, setAskingAi] = useState(false);
 
@@ -124,7 +120,6 @@ function StockDetailContent() {
         if (data.aiAnalysis) setAiAnalysis(data.aiAnalysis);
         if (data.aliasRedirect) setAliasRedirect(data.aliasRedirect);
         if (data.sourceAttribution) setSourceAttribution(data.sourceAttribution);
-        if (data.lastRefreshedAt) setLastRefreshedAt(data.lastRefreshedAt);
       })
       .catch(err => {
         if (err.name === 'AbortError') return;
@@ -207,7 +202,6 @@ function StockDetailContent() {
       });
       const data = await res.json();
       if (data.answer) {
-        setAiAnswer(data.answer);
         setAiResult(data);
       }
     } catch (err) {
