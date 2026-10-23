@@ -58,12 +58,14 @@ function generateLocalEmbedding(text: string): number[] {
   return vec;
 }
 
+let geminiEmbeddingAvailable = true;
+
 /**
  * Generate 768-dimensional dense vector embeddings using Google Gemini text-embedding-004
  * with seamless fallback to deterministic local embedding
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
-  if (genAI && apiKey) {
+  if (genAI && apiKey && geminiEmbeddingAvailable) {
     try {
       const res = await genAI.models.embedContent({
         model: 'text-embedding-004',
@@ -75,7 +77,8 @@ export async function generateEmbedding(text: string): Promise<number[]> {
         return values;
       }
     } catch (err) {
-      console.warn('[RAG] Gemini embedding API call failed, falling back to local embedding:', (err as Error).message);
+      geminiEmbeddingAvailable = false;
+      console.warn('[RAG] Gemini embedding API call failed, falling back to local embedding engine:', (err as Error).message);
     }
   }
 

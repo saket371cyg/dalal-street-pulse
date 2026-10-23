@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { AIAnalystResponse } from '@/components/ai/AIAnalystResponse';
+import { RAGAskResponse } from '@/types';
 
 export default function AIInsightsPage() {
   const [question, setQuestion] = useState('');
@@ -21,22 +23,34 @@ export default function AIInsightsPage() {
   const [conversations, setConversations] = useState<
     {
       q: string;
-      a: string;
-      sources: string[];
-      chunksUsed?: any[];
-      modelUsed?: string;
-      executionTimeMs?: number;
-      showChunks?: boolean;
+      response: RAGAskResponse;
     }[]
   >([
     {
       q: 'How should a retail investor evaluate P/E and ROCE for Indian IT companies like TCS and Infosys?',
-      a: `In Indian IT equities (TCS, Infosys, Wipro):
-1. **ROCE (Return on Capital Employed):** Tier-1 IT exporters operate asset-light business models with minimal debt, which routinely yields ROCE exceeding 40-50%. High ROCE indicates superior returns generated on invested client-delivery infrastructure.
-2. **P/E (Price-to-Earnings):** Historically, Indian IT trades between 22x and 32x trailing P/E depending on US/Europe discretionary tech spending cycles. Compare current multiples against the 5-year median P/E and CC (constant currency) dollar revenue growth guidance.
-3. **Dividend & Buybacks:** Consistent free cash flow conversion (>80% of net profit returned to shareholders via dividends and share repurchases) is a vital quality hallmark.`,
-      sources: ['NSE Corporate Disclosures', 'ICAI Valuation Principles'],
-      modelUsed: 'RAG Vector Engine',
+      response: {
+        answer: '**Capital Allocation & Valuation:** Tier-1 Indian IT companies (TCS, INFY) feature asset-light balances where ROCE routinely exceeds 35-45%.\n\n- ROCE Benchmark: Evaluates capital compounding efficiency on client infrastructure without debt distortion.\n- Valuation Spread: IT multiples trade relative to US discretionary spending cycles and 5-year median P/E bands.\n- Cash Conversion: Free cash flow yield and dividend payout ratios buffer downside volatility.\n\n**Caveat:** Global IT demand slowdowns or margin pressures can compress multiple expansion regardless of past ROCE.',
+        conclusion: 'Tier-1 Indian IT companies (TCS, INFY) feature asset-light balances where ROCE routinely exceeds 35-45%.',
+        supportingEvidence: [
+          'ROCE Benchmark: Evaluates capital compounding efficiency on client infrastructure without debt distortion.',
+          'Valuation Spread: IT multiples trade relative to US discretionary spending cycles and 5-year median P/E bands.',
+          'Cash Conversion: Free cash flow yield and dividend payout ratios buffer downside volatility.',
+        ],
+        caveat: 'Global IT demand slowdowns or margin pressures can compress multiple expansion regardless of past ROCE.',
+        credibility: {
+          score: null,
+          rating: 'Not Scored',
+          explanation: 'General conceptual inquiry. Evidence credibility scoring applies to specific company data and verified market calculations.',
+          disclaimer: 'Credibility measures the quality, completeness, and verification of the underlying market evidence, not the certainty of the market outlook or future stock performance.',
+          factors: [],
+          limitations: ['Conceptual answer; no company-specific data requested or evaluated.'],
+        },
+        questionType: 'EDUCATIONAL',
+        stockSymbol: 'TCS / INFY',
+        relatedMetrics: ['ROCE Spread', 'P/E Band', 'FCF Yield'],
+        groundedSources: ['NSE Corporate Disclosures', 'ICAI Valuation Principles'],
+        modelUsed: 'Educational Intelligence Engine',
+      },
     },
   ]);
 
@@ -54,18 +68,13 @@ export default function AIInsightsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: currentQ }),
       });
-      const data = await res.json();
+      const data: RAGAskResponse = await res.json();
       if (data.answer) {
         setConversations(prev => [
           ...prev,
           {
             q: currentQ,
-            a: data.answer,
-            sources: data.groundedSources || ['SEBI Guidelines', 'NSE Data'],
-            chunksUsed: data.chunksUsed,
-            modelUsed: data.modelUsed,
-            executionTimeMs: data.executionTimeMs,
-            showChunks: false,
+            response: data,
           },
         ]);
       }
@@ -74,12 +83,6 @@ export default function AIInsightsPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const toggleEvidence = (idx: number) => {
-    setConversations(prev =>
-      prev.map((c, i) => (i === idx ? { ...c, showChunks: !c.showChunks } : c))
-    );
   };
 
   const quickQuestions = [
@@ -164,71 +167,8 @@ export default function AIInsightsPage() {
                   <div className="h-7 w-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 mt-0.5">
                     <Sparkles className="h-3.5 w-3.5" />
                   </div>
-                  <div className="bg-card border border-border/60 text-foreground text-xs p-4 rounded-2xl rounded-tl-xs max-w-2xl leading-relaxed whitespace-pre-line shadow-xs">
-                    {c.a}
-                    <div className="mt-3.5 pt-2.5 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-[10px] text-muted-foreground">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <div className="flex items-center gap-1 text-emerald-500 font-medium mr-1">
-                          <ShieldCheck className="h-3.5 w-3.5" />
-                          <span>Grounded Sources:</span>
-                        </div>
-                        {c.sources.map((src, sIdx) => (
-                          <Badge key={sIdx} variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
-                            {src}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      {c.modelUsed && (
-                        <div className="flex items-center gap-1 text-[9px] font-mono text-muted-foreground">
-                          <Badge variant="outline" className="text-[9px] px-1.5 py-0">
-                            {c.modelUsed} {c.executionTimeMs ? `• ${c.executionTimeMs}ms` : ''}
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Expandable RAG Retrieved Evidence Chunks */}
-                    {c.chunksUsed && c.chunksUsed.length > 0 && (
-                      <div className="mt-2.5 pt-2 border-t border-border/30">
-                        <button
-                          type="button"
-                          onClick={() => toggleEvidence(idx)}
-                          className="text-[11px] text-primary hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
-                        >
-                          <BookOpen className="h-3 w-3" />
-                          {c.showChunks ? 'Hide' : 'View'} {c.chunksUsed.length} Vector-Retrieved Evidence Chunks
-                        </button>
-
-                        {c.showChunks && (
-                          <div className="mt-2 space-y-2">
-                            {c.chunksUsed.map((chunk, chIdx) => (
-                              <div
-                                key={chIdx}
-                                className="p-2.5 rounded-lg border border-border/50 bg-muted/20 text-[11px] space-y-1"
-                              >
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="font-semibold text-foreground truncate">{chunk.title}</span>
-                                  <div className="flex items-center gap-1 shrink-0">
-                                    <Badge variant="outline" className="text-[9px] uppercase px-1 py-0">
-                                      {chunk.category}
-                                    </Badge>
-                                    {chunk.relevanceScore !== undefined && (
-                                      <Badge variant="secondary" className="text-[9px] font-mono px-1 py-0 text-emerald-500">
-                                        {(chunk.relevanceScore * 100).toFixed(0)}% match
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-muted-foreground text-[10px] line-clamp-3 italic">
-                                  "{chunk.snippet}"
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                  <div className="flex-1 min-w-0 max-w-2xl">
+                    <AIAnalystResponse data={c.response} />
                   </div>
                 </div>
               </div>

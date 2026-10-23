@@ -248,28 +248,40 @@ describe('End-to-End Quantitative AI Analyst Pipeline', () => {
     expect(bundle.quality.score).toBeDefined();
   });
 
-  it('generates a structured evidence-grounded report with all required sections and no fabricated prices', async () => {
+  it('generates a concise evidence-grounded report with direct conclusion, credibility, and detailed analysis', async () => {
     const response = await runGroundedAnalystPipeline('Give me a full fundamental and technical breakdown of RELIANCE');
 
     expect(response.answer).toBeDefined();
-    expect(response.answer).toContain('Market Snapshot');
-    expect(response.answer).toContain('Technical Structure');
-    expect(response.answer).toContain('Fundamental Health');
-    expect(response.answer).toContain('Bull Case');
-    expect(response.answer).toContain('Bear Case');
-    expect(response.answer).toContain('Scenario Analysis');
-    expect(response.answer).toContain('Regulatory Disclaimer');
+    expect(response.conclusion).toBeDefined();
+    expect(response.supportingEvidence).toBeDefined();
+    expect(response.supportingEvidence?.length).toBeGreaterThan(0);
+    expect(response.supportingEvidence?.length).toBeLessThanOrEqual(3);
+    expect(response.credibility).toBeDefined();
+    expect(response.credibility?.score).toBeGreaterThan(0);
+
+    // Detailed analysis contains the full comprehensive sections
+    expect(response.detailedAnalysis).toBeDefined();
+    expect(response.detailedAnalysis).toContain('Market Snapshot');
+    expect(response.detailedAnalysis).toContain('Technical Structure');
+    expect(response.detailedAnalysis).toContain('Fundamental Health');
     expect(response.groundedSources.length).toBeGreaterThan(0);
   });
 
-  it('generates a structured side-by-side comparative analysis when comparing two stocks', async () => {
+  it('generates a structured concise comparative analysis and detailed side-by-side metrics', async () => {
     const response = await runGroundedAnalystPipeline('Compare TCS vs INFY');
 
     expect(response.answer).toBeDefined();
-    expect(response.answer).toContain('TCS vs INFY');
-    expect(response.answer).toContain('Return on Capital (ROCE)');
-    expect(response.answer).toContain('P/E Ratio (Trailing)');
-    expect(response.answer).toContain('Debt-to-Equity Ratio');
-    expect(response.answer).toContain('Side-by-Side Financial & Valuation Metrics');
+    expect(response.conclusion).toBeDefined();
+    expect(response.conclusion).toContain('TCS');
+    expect(response.conclusion).toContain('INFY');
+    expect(response.supportingEvidence?.length).toBeGreaterThan(0);
+    expect(response.credibility).toBeDefined();
+
+    // Detailed comparison report contains full metrics table
+    expect(response.detailedAnalysis).toBeDefined();
+    expect(response.detailedAnalysis).toContain('Return on Capital (ROCE)');
+    expect(response.detailedAnalysis).toContain('P/E Ratio (Trailing)');
+    expect(response.detailedAnalysis).toContain('Debt-to-Equity Ratio');
+    expect(response.detailedAnalysis).toContain('Side-by-Side Financial & Valuation Metrics');
   });
 });

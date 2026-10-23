@@ -1,4 +1,7 @@
 import { normalizeIndianSymbol } from '@/lib/utils/indian-market';
+import { QuestionType } from './credibility-scorer';
+
+export { type QuestionType };
 
 /**
  * Common colloquially referenced Indian companies and their canonical NSE symbols
@@ -82,11 +85,65 @@ const COMPANY_NAME_MAP: Record<string, string> = {
 
 export interface ResolvedQueryContext {
   intent: 'COMPARISON' | 'SINGLE_STOCK' | 'GENERAL_MARKET';
+  questionType: QuestionType;
   primarySymbol?: string;
   secondarySymbol?: string;
   allSymbols: string[];
   isExplicitComparison: boolean;
   timeframeRequested?: '1D' | '1W' | '1M' | '3M' | '6M' | '1Y' | '5Y';
+}
+
+/**
+ * Classifies the specific analytical intent of the query for strict formatting
+ */
+export function classifyQuestionType(question: string, hasSymbols: boolean): QuestionType {
+  const q = question.toLowerCase();
+
+  // 1. Educational query when no stock symbols are present
+  if (!hasSymbols && /\b(what is|what does|explain|how does|define|meaning of|how to calculate|what are)\b/i.test(q)) {
+    return 'EDUCATIONAL';
+  }
+
+  // 2. Comparison
+  if (/\b(vs|versus|compare|compared|comparison|better|between|difference|differ)\b/i.test(q)) {
+    return hasSymbols ? 'COMPARISON' : 'EDUCATIONAL';
+  }
+
+  // 3. Why moved / fallen / surged
+  if (
+    /\b(why\s+(did|is|was|has)|reason\s+for|why\s+down|why\s+fall|why\s+drop|why\s+crash|why\s+surge|why\s+rally|fell\s+today|drop\s+today|down\s+today|crash\s+today)\b/i.test(
+      q
+    )
+  ) {
+    return 'WHY_MOVED';
+  }
+
+  // 4. Bullish / Bearish / Directional bias
+  if (/\b(bullish|bearish|outlook|should i buy|should i sell|good to buy|buy or sell|positive or negative|trend bias)\b/i.test(q)) {
+    return 'BULLISH_BEARISH';
+  }
+
+  // 5. Forecast / Target
+  if (/\b(target|forecast|reach|predict|prediction|will it hit|where is it headed|expected price|future price)\b/i.test(q)) {
+    return 'FORECAST';
+  }
+
+  // 6. Technical analysis
+  if (/\b(technical|rsi|macd|sma|moving average|support|resistance|pivot|vwap|breakout|chart|candlestick)\b/i.test(q)) {
+    return 'TECHNICAL';
+  }
+
+  // 7. Fundamental analysis
+  if (/\b(fundamental|p\/e|pe ratio|roce|roe|debt|balance sheet|quarterly|results|revenue|profit|margin|dividend|valuation|promoter)\b/i.test(q)) {
+    return 'FUNDAMENTAL';
+  }
+
+  // 8. Factual query
+  if (/\b(price|cmp|current price|ceo|market cap|52 week|high|low|volume|isin)\b/i.test(q)) {
+    return 'FACTUAL';
+  }
+
+  return hasSymbols ? 'FACTUAL' : 'EDUCATIONAL';
 }
 
 /**
@@ -159,8 +216,11 @@ export function resolveSecurityContext(
     intent = 'SINGLE_STOCK';
   }
 
+  const questionType = classifyQuestionType(question, symbolsList.length > 0);
+
   return {
     intent,
+    questionType,
     primarySymbol: symbolsList[0],
     secondarySymbol: symbolsList[1],
     allSymbols: symbolsList,

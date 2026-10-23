@@ -141,6 +141,7 @@ export interface MarketIndex {
 
 export interface StockQuote {
   symbol: string;
+  isin?: string;
   exchange: Exchange;
   companyName: string;
   currentPrice: number; // in INR
@@ -335,8 +336,32 @@ export interface RAGChunkSnippet {
   relevanceScore?: number;
 }
 
+export interface CredibilityFactor {
+  name: string;
+  weight: number;
+  score: number;
+  details: string;
+  status: 'good' | 'warning' | 'poor';
+}
+
+export interface CredibilityScoreResult {
+  score: number | null;
+  rating: 'High' | 'Moderate' | 'Low' | 'Unavailable' | 'Not Scored';
+  explanation: string;
+  disclaimer: string;
+  factors: CredibilityFactor[];
+  limitations: string[];
+}
+
 export interface RAGAskResponse {
   answer: string;
+  conclusion?: string;
+  supportingEvidence?: string[];
+  caveat?: string;
+  detailedAnalysis?: string;
+  credibility?: CredibilityScoreResult;
+  questionType?: string;
+  stockSymbol?: string;
   relatedMetrics: string[];
   groundedSources: string[];
   chunksUsed?: RAGChunkSnippet[];

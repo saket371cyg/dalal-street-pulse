@@ -35,6 +35,7 @@ import {
   Instrument,
   InstrumentCoverageStatus,
   CorporateAction,
+  RAGAskResponse,
 } from '@/types';
 import { formatINR, formatPercent } from '@/lib/utils/indian-market';
 import { InteractiveStockChart } from '@/components/charts/InteractiveStockChart';
@@ -44,6 +45,7 @@ import { AddToWatchlistModal } from '@/components/watchlists/AddToWatchlistModal
 import { CreateAlertDialog } from '@/components/alerts/CreateAlertDialog';
 import { useLiveQuotes } from '@/hooks/useLiveQuotes';
 import { Suspense } from 'react';
+import { AIAnalystResponse } from '@/components/ai/AIAnalystResponse';
 
 function StockDetailContent() {
   const params = useParams();
@@ -93,12 +95,7 @@ function StockDetailContent() {
   // AI Assistant Question State
   const [question, setQuestion] = useState('');
   const [aiAnswer, setAiAnswer] = useState<string | null>(null);
-  const [aiResult, setAiResult] = useState<{
-    answer: string;
-    groundedSources?: string[];
-    chunksUsed?: any[];
-    modelUsed?: string;
-  } | null>(null);
+  const [aiResult, setAiResult] = useState<RAGAskResponse | null>(null);
   const [askingAi, setAskingAi] = useState(false);
 
   const handleExchangeChange = (newEx: 'NSE' | 'BSE') => {
@@ -665,34 +662,9 @@ function StockDetailContent() {
                     </Button>
                   </form>
 
-                  {aiAnswer && (
-                    <div className="p-3.5 rounded-lg border border-primary/20 bg-primary/5 text-xs text-foreground leading-relaxed whitespace-pre-line space-y-2.5">
-                      <div>{aiAnswer}</div>
-                      
-                      {aiResult?.groundedSources && aiResult.groundedSources.length > 0 && (
-                        <div className="pt-2 border-t border-primary/20 flex flex-wrap items-center gap-1.5 text-[10px]">
-                          <span className="text-emerald-500 font-semibold flex items-center gap-1">
-                            <ShieldCheck className="h-3 w-3" /> Grounded Sources:
-                          </span>
-                          {aiResult.groundedSources.map((s, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-[9px] px-1.5 py-0 font-normal">
-                              {s}
-                            </Badge>
-                          ))}
-                          {aiResult.modelUsed && (
-                            <Badge variant="outline" className="text-[9px] font-mono ml-auto">
-                              {aiResult.modelUsed}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-
-                      {aiResult?.chunksUsed && aiResult.chunksUsed.length > 0 && (
-                        <div className="pt-1 text-[10px] text-muted-foreground">
-                          <span className="font-medium text-foreground">Retrieved Filings ({aiResult.chunksUsed.length}):</span>{' '}
-                          {aiResult.chunksUsed.map(c => c.title).join(' • ')}
-                        </div>
-                      )}
+                  {aiResult && (
+                    <div className="pt-2">
+                      <AIAnalystResponse data={aiResult} />
                     </div>
                   )}
                 </CardContent>

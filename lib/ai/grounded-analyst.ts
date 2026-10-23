@@ -20,6 +20,8 @@ import { evaluateDataQuality, DataQualityReport } from './confidence-gate';
 import { retrieveRelevantChunks } from './rag';
 import { formatINR, formatCrores, formatPercent, getMarketSessionStatus } from '@/lib/utils/indian-market';
 import { StockQuote, CompanyFundamentals, OHLCVCandle, CorporateAction, FinancialNewsItem, RAGAskResponse } from '@/types';
+import { calculateEvidenceCredibility } from './credibility-scorer';
+import { classifyQuestionType, QuestionType } from './security-resolver';
 
 const apiKey = process.env.AI_API_KEY || '';
 const genAI = apiKey ? new GoogleGenAI({ apiKey }) : null;
@@ -241,6 +243,259 @@ export function buildDeterministicComparisonReport(
   return sections.join('\n');
 }
 
+export interface ConciseStockReport {
+  conclusion: string;
+  supportingEvidence: string[];
+  caveat: string;
+  detailedAnalysis: string;
+  formattedAnswer: string;
+}
+
+/**
+ * Builds a concise, stock-specific, evidence-based report tailored to the question type.
+ * Target length: 40-100 words (1-sentence conclusion, up to 3 bullets, 1-sentence caveat).
+ */
+export function buildConciseStockReport(
+  bundle: StockQuantitativeBundle,
+  question: string,
+  questionType: QuestionType
+): ConciseStockReport {
+  const { symbol, quote, fundamentals, technicals, actions, news } = bundle;
+  const detailedAnalysis = buildDeterministicStockReport(bundle, question);
+
+  if (!quote || quote.currentPrice <= 0) {
+    const conclusion = `**Unable to retrieve verified market quote for ${symbol}.**`;
+    const supportingEvidence = [
+      'Data Feed: NSE/BSE active price observation could not be retrieved from exchange provider.',
+      'Verification: Check exchange connectivity or verify the ticker symbol.',
+    ];
+    const caveat = 'Quantitative analysis is disabled when market prices cannot be verified.';
+    const formattedAnswer = `${conclusion}\n\n${supportingEvidence.map(e => `- ${e}`).join('\n')}\n\n**Caveat:** ${caveat}`;
+    return { conclusion, supportingEvidence, caveat, detailedAnalysis, formattedAnswer };
+  }
+
+  const changeSign = quote.percentChange >= 0 ? '+' : '';
+  const changeText = `${changeSign}${quote.percentChange}% (${formatINR(quote.change)})`;
+
+  let trendAssessment = 'Sideways / Consolidation';
+  if (technicals.sma50 && quote.currentPrice > technicals.sma50 && (technicals.rsi14?.rsi || 50) >= 50) {
+    trendAssessment = 'Bullish Momentum';
+  } else if (technicals.sma50 && quote.currentPrice < technicals.sma50 && (technicals.rsi14?.rsi || 50) < 50) {
+    trendAssessment = 'Bearish Bias';
+  }
+
+  let conclusion = '';
+  let supportingEvidence: string[] = [];
+  let caveat = '';
+
+  switch (questionType) {
+    case 'BULLISH_BEARISH': {
+      if (trendAssessment === 'Bullish Momentum') {
+        conclusion = `**Outlook: Cautiously bullish.** The available trend data supports a positive short-term bias above the 50-day moving average, but confirmation depends on price action and volume.`;
+      } else if (trendAssessment === 'Bearish Bias') {
+        conclusion = `**Outlook: Bearish bias.** ${quote.companyName} is trading below its 50-day moving average with negative short-term momentum.`;
+      } else {
+        conclusion = `**Outlook: Neutral / Consolidating.** ${quote.companyName} trades within a consolidation band without a definitive directional breakout.`;
+      }
+
+      supportingEvidence = [
+        `Price & Trend: CMP is ${formatINR(quote.currentPrice)} [${changeText}] relative to 50-day SMA of ${technicals.sma50 ? formatINR(technicals.sma50) : 'N/A'}.`,
+        `Momentum: 14-day RSI stands at ${technicals.rsi14 ? `${technicals.rsi14.rsi} (${technicals.rsi14.condition})` : 'N/A'}${technicals.macd ? `, MACD histogram at ${technicals.macd.histogram}` : ''}.`,
+        `Key Structural Levels: Classic Pivot at ${technicals.pivots ? formatINR(technicals.pivots.pivot) : 'N/A'} (Support S1: ${technicals.pivots ? formatINR(technicals.pivots.s1) : 'N/A'}, Resistance R1: ${technicals.pivots ? formatINR(technicals.pivots.r1) : 'N/A'}).`,
+      ];
+      caveat = `A sustained daily close below support at ${technicals.pivots ? formatINR(technicals.pivots.s1) : 'S1'} invalidates this directional outlook.`;
+      break;
+    }
+
+    case 'WHY_MOVED': {
+      const hasNews = news.length > 0;
+      const hasAction = actions.length > 0;
+
+      if (hasNews) {
+        conclusion = `**Main finding:** ${quote.companyName} moved ${changeText} to ${formatINR(quote.currentPrice)} accompanied by recent news regarding ${news[0].title}.`;
+        supportingEvidence = [
+          `Observed Move: Intraday range of ${formatINR(quote.low)} to ${formatINR(quote.high)} on volume of ${quote.volume.toLocaleString('en-IN')} shares.`,
+          `Reported Catalyst: "${news[0].title}" (${news[0].source}, published ${news[0].publishedAt.split('T')[0]}).`,
+          fundamentals
+            ? `Valuation Context: Trailing P/E of ${fundamentals.peRatio.toFixed(1)}x with market cap of ${formatCrores(fundamentals.marketCapCrores)}.`
+            : `Session Status: ${quote.freshness.toUpperCase()} data recorded at ${quote.lastUpdated}.`,
+        ];
+        caveat = `Market price movements reflect aggregate market liquidity and cannot be conclusively attributed to a single news headline.`;
+      } else if (hasAction) {
+        conclusion = `**Main finding:** ${quote.companyName} moved ${changeText} to ${formatINR(quote.currentPrice)} coinciding with corporate action ${actions[0].actionType}.`;
+        supportingEvidence = [
+          `Session Move: Range of ${formatINR(quote.low)} - ${formatINR(quote.high)} with ${quote.volume.toLocaleString('en-IN')} shares traded.`,
+          `Corporate Action: ${actions[0].actionType} (${actions[0].details}) on Ex-Date ${actions[0].exDate}.`,
+          `52-Week Range: Trading at ${technicals.range52Week ? `${technicals.range52Week.rangePositionPercent.toFixed(1)}% of annual corridor` : 'N/A'}.`,
+        ];
+        caveat = `Corporate action adjustments impact immediate market liquidity and pricing.`;
+      } else {
+        conclusion = `**Main finding:** ${quote.companyName} moved ${changeText} today to ${formatINR(quote.currentPrice)} on standard exchange order flow without a company-specific filing.`;
+        supportingEvidence = [
+          `Price Action: Session range of ${formatINR(quote.low)} to ${formatINR(quote.high)} with ${quote.volume.toLocaleString('en-IN')} shares traded.`,
+          `Statutory Filings: No material corporate announcements, dividend ex-dates, or quarterly releases logged in recent sessions.`,
+          `Causation: Specific causation cannot be verified without an official exchange disclosure.`,
+        ];
+        caveat = `Intraday moves without corporate filings typically track broader sectoral index sentiment or institutional liquidity shifts.`;
+      }
+      break;
+    }
+
+    case 'TECHNICAL': {
+      conclusion = `**Technical Trend:** ${trendAssessment} with ${quote.symbol} currently at ${formatINR(quote.currentPrice)} [${changeText}].`;
+      supportingEvidence = [
+        `Moving Averages: 20 SMA at ${technicals.sma20 ? formatINR(technicals.sma20) : 'N/A'}, 50 SMA at ${technicals.sma50 ? formatINR(technicals.sma50) : 'N/A'}, 200 SMA at ${technicals.sma200 ? formatINR(technicals.sma200) : 'N/A'}.`,
+        `Oscillators: Daily RSI (14) is ${technicals.rsi14 ? `${technicals.rsi14.rsi} (${technicals.rsi14.condition})` : 'N/A'}; MACD trend is ${technicals.macd ? technicals.macd.trend : 'N/A'}.`,
+        `Observed Levels: Floor Pivot ${technicals.pivots ? formatINR(technicals.pivots.pivot) : 'N/A'} (Support S1: ${technicals.pivots ? formatINR(technicals.pivots.s1) : 'N/A'}, Resistance R1: ${technicals.pivots ? formatINR(technicals.pivots.r1) : 'N/A'}).`,
+      ];
+      caveat = `Technical indicator calculations indicate historical probability zones and do not guarantee future support or resistance integrity.`;
+      break;
+    }
+
+    case 'FUNDAMENTAL': {
+      conclusion = fundamentals
+        ? `**Fundamental Health:** ${quote.companyName} trades at ${fundamentals.peRatio.toFixed(1)}x P/E with ROCE of ${fundamentals.roce.toFixed(1)}% and Debt-to-Equity of ${fundamentals.debtToEquity.toFixed(2)}.`
+        : `**Fundamental Health:** Audited financial statement metrics are currently unavailable from active feed for ${quote.symbol}.`;
+      supportingEvidence = fundamentals
+        ? [
+            `Valuation Multiple: Trailing P/E is ${fundamentals.peRatio.toFixed(1)}x relative to sector median of ${fundamentals.industryPE.toFixed(1)}x (P/B: ${fundamentals.pbRatio ? `${fundamentals.pbRatio.toFixed(1)}x` : 'N/A'}).`,
+            `Capital Efficiency & Leverage: ROCE of ${fundamentals.roce.toFixed(1)}%, ROE of ${fundamentals.roe.toFixed(1)}%, and Debt-to-Equity of ${fundamentals.debtToEquity.toFixed(2)}.`,
+            `Ownership & Latest Quarter: Promoter holding is ${fundamentals.promoterHoldingPercent.toFixed(1)}% (DII: ${fundamentals.diiHoldingPercent.toFixed(1)}%, FII: ${fundamentals.fiiHoldingPercent.toFixed(1)}%)${fundamentals.quarterlyResults[0] ? `; ${fundamentals.quarterlyResults[0].period} PAT: ₹${formatCrores(fundamentals.quarterlyResults[0].profitCrores)}` : ''}.`,
+          ]
+        : [
+            `Current Market Price: ${formatINR(quote.currentPrice)} on ${quote.exchange}.`,
+            `Trading Volume: ${quote.volume.toLocaleString('en-IN')} shares.`,
+          ];
+      caveat = `Fundamental ratios evaluate the latest reported audited periods and are subject to cyclical macroeconomic conditions.`;
+      break;
+    }
+
+    case 'FORECAST': {
+      conclusion = `**Price Target Analysis:** Quantitative forecasts carry substantial market uncertainty and cannot be guaranteed.`;
+      supportingEvidence = [
+        `Observed Resistance: Immediate pivot resistance R1 at ${technicals.pivots ? formatINR(technicals.pivots.r1) : 'N/A'} and 52-week high at ${formatINR(quote.week52High)}.`,
+        `Observed Support: Immediate pivot support S1 at ${technicals.pivots ? formatINR(technicals.pivots.s1) : 'N/A'} and 50-day SMA at ${technicals.sma50 ? formatINR(technicals.sma50) : 'N/A'}.`,
+        `Valuation Context: Current CMP of ${formatINR(quote.currentPrice)} reflects ${fundamentals ? `${fundamentals.peRatio.toFixed(1)}x P/E multiple` : 'current trading price'}.`,
+      ];
+      caveat = `Never treat projected levels as guaranteed outcomes; macroeconomic news and order flow alter technical levels continuously.`;
+      break;
+    }
+
+    case 'FACTUAL':
+    default: {
+      conclusion = `${quote.companyName} (${quote.exchange}: ${quote.symbol}) currently trades at ${formatINR(quote.currentPrice)} [${changeText}].`;
+      supportingEvidence = [
+        `Intraday Trading Range: Low ${formatINR(quote.low)} — High ${formatINR(quote.high)} (Open: ${formatINR(quote.open)}, Prev Close: ${formatINR(quote.previousClose)}).`,
+        `52-Week Range: Low ${formatINR(quote.week52Low)} — High ${formatINR(quote.week52High)} (${technicals.range52Week ? `${technicals.range52Week.rangePositionPercent.toFixed(1)}% of annual corridor` : 'N/A'}).`,
+        `Session Activity: ${quote.volume.toLocaleString('en-IN')} shares traded${fundamentals ? `; Market Cap: ${formatCrores(fundamentals.marketCapCrores)}` : ''}.`,
+      ];
+      caveat = `Quote reflects ${quote.freshness.toUpperCase()} data as of ${quote.lastUpdated}.`;
+      break;
+    }
+  }
+
+  const formattedAnswer = [
+    conclusion,
+    '',
+    ...supportingEvidence.map(e => `- ${e}`),
+    '',
+    `**Caveat:** ${caveat}`,
+  ].join('\n');
+
+  return {
+    conclusion,
+    supportingEvidence,
+    caveat,
+    detailedAnalysis,
+    formattedAnswer,
+  };
+}
+
+/**
+ * Builds a concise comparison between two Indian equities.
+ */
+export function buildConciseComparisonReport(
+  bundleA: StockQuantitativeBundle,
+  bundleB: StockQuantitativeBundle,
+  question: string
+): ConciseStockReport {
+  const qA = bundleA.quote;
+  const qB = bundleB.quote;
+  const fA = bundleA.fundamentals;
+  const fB = bundleB.fundamentals;
+  const detailedAnalysis = buildDeterministicComparisonReport(bundleA, bundleB, question);
+
+  if (!qA || !qB) {
+    const conclusion = `**Unable to compare ${bundleA.symbol} and ${bundleB.symbol}:** Active quotes could not be retrieved for both securities.`;
+    const supportingEvidence = ['Please verify symbol validity on NSE/BSE.'];
+    const caveat = 'Comparison requires simultaneous exchange quotes.';
+    const formattedAnswer = `${conclusion}\n\n- ${supportingEvidence[0]}\n\n**Caveat:** ${caveat}`;
+    return { conclusion, supportingEvidence, caveat, detailedAnalysis, formattedAnswer };
+  }
+
+  const conclusion = `**Comparison:** ${bundleA.symbol} (${formatINR(qA.currentPrice)}, ${fA ? `${fA.peRatio.toFixed(1)}x P/E` : 'N/A'}) vs ${bundleB.symbol} (${formatINR(qB.currentPrice)}, ${fB ? `${fB.peRatio.toFixed(1)}x P/E` : 'N/A'}).`;
+  const supportingEvidence = [
+    `Valuation Multiples: ${fA && fB ? `${fA.peRatio < fB.peRatio ? `${bundleA.symbol} trades at a lower P/E (${fA.peRatio.toFixed(1)}x vs ${fB.peRatio.toFixed(1)}x)` : `${bundleB.symbol} trades at a lower P/E (${fB.peRatio.toFixed(1)}x vs ${fA.peRatio.toFixed(1)}x)`}` : 'Valuation metrics comparison pending'}.`,
+    `Capital Efficiency: ROCE is ${fA ? `${fA.roce.toFixed(1)}%` : 'N/A'} (${bundleA.symbol}) vs ${fB ? `${fB.roce.toFixed(1)}%` : 'N/A'} (${bundleB.symbol}); ROE is ${fA ? `${fA.roe.toFixed(1)}%` : 'N/A'} vs ${fB ? `${fB.roe.toFixed(1)}%` : 'N/A'}.`,
+    `Leverage & Momentum: D/E is ${fA ? fA.debtToEquity.toFixed(2) : 'N/A'} (${bundleA.symbol}) vs ${fB ? fB.debtToEquity.toFixed(2) : 'N/A'} (${bundleB.symbol}); RSI (14) is ${bundleA.technicals.rsi14 ? bundleA.technicals.rsi14.rsi : 'N/A'} vs ${bundleB.technicals.rsi14 ? bundleB.technicals.rsi14.rsi : 'N/A'}.`,
+  ];
+  const caveat = `Comparative ratios evaluate past reported quarters and differ across business models.`;
+
+  const formattedAnswer = [
+    conclusion,
+    '',
+    ...supportingEvidence.map(e => `- ${e}`),
+    '',
+    `**Caveat:** ${caveat}`,
+  ].join('\n');
+
+  return { conclusion, supportingEvidence, caveat, detailedAnalysis, formattedAnswer };
+}
+
+/**
+ * Parses LLM output into structured concise fields with deterministic fallback protection
+ */
+function parseLLMResponse(
+  rawText: string,
+  fallback: ConciseStockReport
+): { conclusion: string; supportingEvidence: string[]; caveat: string; formattedAnswer: string } {
+  const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+  let conclusion = '';
+  const supportingEvidence: string[] = [];
+  let caveat = '';
+
+  for (const line of lines) {
+    if (/^\*\*conclusion:?\*\*/i.test(line)) {
+      conclusion = line.replace(/^\*\*conclusion:?\*\*\s*/i, '').trim();
+    } else if (/^\*\*caveat:?\*\*/i.test(line) || /^caveat:?/i.test(line)) {
+      caveat = line.replace(/^\*\*caveat:?\*\*\s*/i, '').replace(/^caveat:?\s*/i, '').trim();
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      supportingEvidence.push(line.replace(/^[-*]\s*/, '').trim());
+    } else if (!conclusion && !line.startsWith('#') && !line.startsWith('**Evidence')) {
+      conclusion = line;
+    }
+  }
+
+  if (!conclusion) conclusion = fallback.conclusion;
+  if (supportingEvidence.length === 0) supportingEvidence.push(...fallback.supportingEvidence);
+  if (!caveat) caveat = fallback.caveat;
+
+  const formattedAnswer = [
+    conclusion.startsWith('**') ? conclusion : `**${conclusion}**`,
+    '',
+    ...supportingEvidence.slice(0, 3).map(b => `- ${b}`),
+    '',
+    `**Caveat:** ${caveat}`,
+  ].join('\n');
+
+  return {
+    conclusion,
+    supportingEvidence: supportingEvidence.slice(0, 3),
+    caveat,
+    formattedAnswer,
+  };
+}
+
 /**
  * Main High-Accuracy Grounded Stock Market Analyst Pipeline
  */
@@ -261,22 +516,52 @@ export async function runGroundedAnalystPipeline(
       getStockQuantitativeBundle(queryContext.secondarySymbol),
     ]);
 
-    const fallbackReport = buildDeterministicComparisonReport(bundleA, bundleB, question);
+    const conciseComparison = buildConciseComparisonReport(bundleA, bundleB, question);
+    const credibility = calculateEvidenceCredibility(
+      {
+        symbol: bundleA.symbol,
+        quote: bundleA.quote,
+        fundamentals: bundleA.fundamentals,
+        candles: bundleA.candles,
+        news: bundleA.news,
+        actions: bundleA.actions,
+      },
+      'COMPARISON',
+      {
+        isComparison: true,
+        secondaryBundle: {
+          symbol: bundleB.symbol,
+          quote: bundleB.quote,
+          fundamentals: bundleB.fundamentals,
+          candles: bundleB.candles,
+          news: bundleB.news,
+          actions: bundleB.actions,
+        },
+      }
+    );
 
     if (genAI && apiKey) {
-      const modelCandidates = [process.env.AI_MODEL || 'gemini-3.8-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
+      const modelCandidates = [process.env.AI_MODEL || 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
       for (const modelName of modelCandidates) {
         try {
           const prompt = `You are a Senior Indian Equity Research Analyst for Dalal Street Pulse.
 The user wants to compare two Indian listed companies: ${bundleA.symbol} and ${bundleB.symbol}.
-Use ONLY the verified quantitative numbers and observations provided below. Do not invent any numbers, prices, or ratings.
+User Question: "${question}"
+
+CRITICAL INSTRUCTIONS:
+1. ANSWER THE EXACT QUESTION IN THE VERY FIRST SENTENCE. No preamble, no greetings, no introductory fluff.
+2. STRICT LENGTH: Target 40 to 90 words.
+3. FORMAT EXACTLY AS FOLLOWS:
+**Conclusion:** [1 direct sentence comparing the two companies]
+**Evidence:**
+- [Bullet 1: Citing verified valuation multiples P/E for both]
+- [Bullet 2: Citing verified ROCE or return metrics for both]
+- [Bullet 3: Citing verified leverage or RSI indicators for both]
+**Caveat:** [1 short sentence on invalidation condition or differing business models]
+4. NEVER invent prices, multiples, or returns. Use ONLY the verified data below.
 
 VERIFIED COMPARISON METRICS:
-${fallbackReport}
-
-User Question: ${question}
-
-Provide a structured, unbiased comparative equity analysis. Cite specific numbers. Explain the trade-offs clearly without declaring a simplistic winner.`;
+${conciseComparison.detailedAnalysis}`;
 
           const res = await genAI.models.generateContent({
             model: modelName,
@@ -284,8 +569,16 @@ Provide a structured, unbiased comparative equity analysis. Cite specific number
           });
 
           if (res.text) {
+            const parsed = parseLLMResponse(res.text, conciseComparison);
             return {
-              answer: res.text,
+              answer: parsed.formattedAnswer,
+              conclusion: parsed.conclusion,
+              supportingEvidence: parsed.supportingEvidence,
+              caveat: parsed.caveat,
+              detailedAnalysis: conciseComparison.detailedAnalysis,
+              credibility,
+              questionType: 'COMPARISON',
+              stockSymbol: `${bundleA.symbol} vs ${bundleB.symbol}`,
               relatedMetrics: ['Comparative P/E', 'ROCE Spread', 'Debt-to-Equity', 'RSI 14'],
               groundedSources: [
                 `NSE/BSE Reported Data (${bundleA.symbol})`,
@@ -303,7 +596,14 @@ Provide a structured, unbiased comparative equity analysis. Cite specific number
     }
 
     return {
-      answer: fallbackReport,
+      answer: conciseComparison.formattedAnswer,
+      conclusion: conciseComparison.conclusion,
+      supportingEvidence: conciseComparison.supportingEvidence,
+      caveat: conciseComparison.caveat,
+      detailedAnalysis: conciseComparison.detailedAnalysis,
+      credibility,
+      questionType: 'COMPARISON',
+      stockSymbol: `${bundleA.symbol} vs ${bundleB.symbol}`,
       relatedMetrics: ['Comparative P/E', 'ROCE Spread', 'Debt-to-Equity', 'RSI 14'],
       groundedSources: [
         `NSE/BSE Reported Data (${bundleA.symbol})`,
@@ -318,29 +618,47 @@ Provide a structured, unbiased comparative equity analysis. Cite specific number
   // Single Stock Analysis
   if (queryContext.primarySymbol) {
     const bundle = await getStockQuantitativeBundle(queryContext.primarySymbol);
+    const questionType = queryContext.questionType || classifyQuestionType(question, true);
+    const conciseReport = buildConciseStockReport(bundle, question, questionType);
     const ragChunks = await retrieveRelevantChunks(question, { symbol: queryContext.primarySymbol, topK: 3 });
-    const deterministicReport = buildDeterministicStockReport(bundle, question);
+    const credibility = calculateEvidenceCredibility(
+      {
+        symbol: bundle.symbol,
+        quote: bundle.quote,
+        fundamentals: bundle.fundamentals,
+        candles: bundle.candles,
+        news: bundle.news,
+        actions: bundle.actions,
+      },
+      questionType
+    );
 
     if (genAI && apiKey) {
-      const modelCandidates = [process.env.AI_MODEL || 'gemini-3.8-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
+      const modelCandidates = [process.env.AI_MODEL || 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
       for (const modelName of modelCandidates) {
         try {
           const prompt = `You are a Senior Indian Equity Research Analyst for Dalal Street Pulse (covering NSE and BSE).
-You must analyze the user's question using ONLY the verified facts and deterministically calculated metrics provided below.
-Rules:
-1. NEVER hallucinate stock prices, historical returns, or indicators. All indicators (SMA, RSI, MACD, Pivots, VWAP) have already been deterministically calculated in the ground truth. Use them exactly as given.
-2. If an indicator is stated as 'Insufficient history', acknowledge the limitation explicitly.
-3. Include Bull case, Bear case, and Invalidation conditions.
-4. Clearly state the Data Quality Confidence (${bundle.quality.score}) and market session status.
-5. End with the informational disclaimer.
+User Question: "${question}"
+Target Stock: ${bundle.symbol} (${bundle.quote?.companyName || bundle.symbol})
+Analytical Intent: ${questionType}
+
+CRITICAL INSTRUCTIONS:
+1. ANSWER THE EXACT QUESTION IN THE VERY FIRST SENTENCE. No greetings, no generic definitions, no filler like "${bundle.quote?.companyName || bundle.symbol} is a major company...".
+2. STRICT LENGTH: Target 40 to 90 words.
+3. FORMAT EXACTLY AS:
+**Conclusion:** [1 direct sentence answering what the user asked, with key takeaway visible immediately]
+**Evidence:**
+- [Bullet 1: Citing verified CMP ₹${bundle.quote?.currentPrice || 'N/A'}, %, or session range]
+- [Bullet 2: Citing verified technical indicator (SMA, RSI) or fundamental ratio (P/E, ROCE)]
+- [Bullet 3: Citing verified quarterly filing, dated announcement, or structural support/resistance level]
+**Caveat:** [1 short sentence stating the primary invalidation trigger or risk]
+4. NEVER invent prices, returns, or catalysts. Rely ONLY on the verified data below.
 
 VERIFIED GROUND TRUTH DATA:
-${deterministicReport}
+${conciseReport.detailedAnalysis}
 
 ADDITIONAL RETRIEVED DISCLOSURES & NEWS:
-${ragChunks.map((c, i) => `[Source ${i + 1}: ${c.title}]\n${c.content}`).join('\n\n')}
-
-User Question: ${question}`;
+${ragChunks.map((c, i) => `[Source ${i + 1}: ${c.title}]\n${c.content}`).join('\n\n')}`;
 
           const res = await genAI.models.generateContent({
             model: modelName,
@@ -348,8 +666,16 @@ User Question: ${question}`;
           });
 
           if (res.text) {
+            const parsed = parseLLMResponse(res.text, conciseReport);
             return {
-              answer: res.text,
+              answer: parsed.formattedAnswer,
+              conclusion: parsed.conclusion,
+              supportingEvidence: parsed.supportingEvidence,
+              caveat: parsed.caveat,
+              detailedAnalysis: conciseReport.detailedAnalysis,
+              credibility,
+              questionType,
+              stockSymbol: bundle.symbol,
               relatedMetrics: ['Price & Volume', 'SMA 20/50', 'RSI 14', 'P/E vs Industry', 'ROCE'],
               groundedSources: [
                 `NSE/BSE Trade Records (${bundle.symbol})`,
@@ -376,7 +702,14 @@ User Question: ${question}`;
     }
 
     return {
-      answer: deterministicReport,
+      answer: conciseReport.formattedAnswer,
+      conclusion: conciseReport.conclusion,
+      supportingEvidence: conciseReport.supportingEvidence,
+      caveat: conciseReport.caveat,
+      detailedAnalysis: conciseReport.detailedAnalysis,
+      credibility,
+      questionType,
+      stockSymbol: bundle.symbol,
       relatedMetrics: ['Price & Volume', 'SMA 20/50', 'RSI 14', 'P/E vs Industry', 'ROCE'],
       groundedSources: [
         `NSE/BSE Trade Records (${bundle.symbol})`,
@@ -397,7 +730,15 @@ User Question: ${question}`;
     };
   }
 
-  // General Market / Macro Query (No specific stock identified)
+  // General Market / Macro / Educational Query (No specific stock identified)
+  const questionType = classifyQuestionType(question, false);
   const { askRAGAnalyst } = await import('./rag');
-  return await askRAGAnalyst(question);
+  const ragResult = await askRAGAnalyst(question);
+  const credibility = calculateEvidenceCredibility({ isEducational: true }, questionType);
+
+  return {
+    ...ragResult,
+    credibility,
+    questionType,
+  };
 }
