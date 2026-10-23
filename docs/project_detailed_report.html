@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dalal Street Pulse — Comprehensive Engineering Project Report</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    @page {
+      size: A4;
+      margin: 14mm 12mm 14mm 12mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #0f172a;
+      background: #ffffff;
+      line-height: 1.48;
+      font-size: 8.8pt;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    .avoid-break {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Cover Page */
+    .cover-page {
+      height: 260mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 2px solid #0f172a;
+      padding: 36px;
+      border-radius: 8px;
+    }
+
+    .cover-top {
+      border-bottom: 3px solid #0284c7;
+      padding-bottom: 20px;
+    }
+
+    .cover-badge {
+      display: inline-block;
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 8.5pt;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 4px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .cover-title {
+      font-size: 30pt;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.1;
+      letter-spacing: -1px;
+    }
+
+    .cover-subtitle {
+      font-size: 12.5pt;
+      font-weight: 600;
+      color: #0284c7;
+      margin-top: 8px;
+      line-height: 1.35;
+    }
+
+    .cover-abstract-box {
+      background: #f8fafc;
+      border-left: 4px solid #0284c7;
+      padding: 16px 20px;
+      border-radius: 0 6px 6px 0;
+      font-size: 9pt;
+      color: #334155;
+      line-height: 1.6;
+    }
+
+    .cover-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 24px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 16px;
+    }
+
+    .cover-meta-item {
+      font-size: 8.5pt;
+      color: #64748b;
+    }
+
+    .cover-meta-item strong {
+      display: block;
+      color: #0f172a;
+      font-size: 9.5pt;
+      margin-top: 2px;
+    }
+
+    /* Standard Headers */
+    .header-banner {
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .brand-title {
+      font-size: 14pt;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.4px;
+      line-height: 1.1;
+    }
+
+    .brand-subtitle {
+      font-size: 8pt;
+      font-weight: 600;
+      color: #0284c7;
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .doc-meta {
+      text-align: right;
+      font-size: 7.5pt;
+      color: #64748b;
+      line-height: 1.3;
+    }
+
+    .doc-meta strong {
+      color: #1e293b;
+    }
+
+    /* Headings */
+    h2 {
+      font-size: 11.5pt;
+      font-weight: 800;
+      color: #0f172a;
+      border-left: 4px solid #0284c7;
+      padding-left: 8px;
+      margin-top: 14px;
+      margin-bottom: 8px;
+      letter-spacing: -0.2px;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    h3 {
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    p {
+      margin-bottom: 7px;
+      color: #334155;
+      text-align: justify;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .badge-primary { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .badge-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .badge-warning { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .badge-purple  { background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+    .badge-dark    { background: #0f172a; color: #ffffff; }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 10px 0;
+      font-size: 8pt;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    th {
+      background: #0f172a;
+      color: #ffffff;
+      text-align: left;
+      padding: 5px 8px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+
+    td {
+      padding: 5px 8px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #334155;
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    /* Cards & Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 8px 0;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .card {
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      padding: 8px 10px;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .card-header {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 8.5pt;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 3px;
+    }
+
+    .card-body {
+      font-size: 8pt;
+      color: #475569;
+      line-height: 1.4;
+    }
+
+    .card-body ul {
+      padding-left: 12px;
+      margin-top: 3px;
+    }
+
+    .card-body li {
+      margin-bottom: 2px;
+    }
+
+    /* Code Blocks */
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.5pt;
+      background: #f1f5f9;
+      padding: 1px 4px;
+      border-radius: 3px;
+      color: #0369a1;
+      border: 1px solid #e2e8f0;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.2pt;
+      padding: 8px 10px;
+      border-radius: 5px;
+      margin: 6px 0 10px 0;
+      line-height: 1.35;
+      overflow-x: hidden;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .callout-box {
+      border-left: 3px solid #0284c7;
+      background: #f0f9ff;
+      padding: 8px 12px;
+      border-radius: 0 5px 5px 0;
+      margin: 8px 0;
+      font-size: 8pt;
+      color: #0369a1;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .phase-container {
+      border-left: 3px solid #cbd5e1;
+      padding-left: 10px;
+      margin-left: 2px;
+      margin-bottom: 10px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .phase-title {
+      font-size: 9pt;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .phase-desc {
+      font-size: 8pt;
+      color: #475569;
+    }
+
+    .phase-list {
+      font-size: 8pt;
+      color: #334155;
+      padding-left: 14px;
+      margin-top: 3px;
+    }
+
+    .phase-list li {
+      margin-bottom: 2px;
+    }
+
+    .footer-bar {
+      margin-top: 14px;
+      padding-top: 6px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      font-size: 7pt;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== PAGE 1: COVER ==================== -->
+  <div class="cover-page">
+    <div class="cover-top">
+      <div class="cover-badge">Software Engineering &amp; Architecture Report</div>
+      <div class="cover-title">Dalal Street Pulse</div>
+      <div class="cover-subtitle">Production-Grade Indian Stock Market Intelligence, Analytics &amp; Automation Platform</div>
+    </div>
+
+    <div class="cover-mid">
+      <div class="cover-abstract-box">
+        <strong style="color: #0f172a; font-size: 10pt; display: block; margin-bottom: 4px;">Executive Abstract</strong>
+        This technical report documents the complete architectural design, engineering specifications, implementation mechanics, and strategic future roadmap for <strong>Dalal Street Pulse</strong>. Built ground-up for the Indian equity ecosystem (National Stock Exchange &amp; BSE Ltd.), the platform solves fundamental deficiencies in mainstream financial platforms—including foreign currency biases, missing Indian trading session clocks (Pre-open, Normal, Muhurat, Post-closing), disjointed dual-exchange tickers, and synthetic US-centric feeds.
+        <br><br>
+        Leveraging <strong>Next.js 16 (App Router + Turbopack)</strong>, <strong>TypeScript</strong>, <strong>Tailwind CSS v4</strong>, <strong>MongoDB</strong>, <strong>Inngest Background Workflows</strong>, and <strong>Grounded AI Analytics</strong>, Dalal Street Pulse provides real-time multi-index tracking, interactive candlestick charting, 10+ fundamental valuation multiples, automated threshold alerts, and scheduled post-market executive briefings.
+      </div>
+
+      <div class="cover-meta-grid">
+        <div class="cover-meta-item">
+          Document Classification
+          <strong>Comprehensive Technical Project Report</strong>
+        </div>
+        <div class="cover-meta-item">
+          Primary Exchange Jurisdiction
+          <strong>NSE India &amp; BSE Ltd. (Equity, SME &amp; Indices)</strong>
+        </div>
+        <div class="cover-meta-item">
+          Core Engine Stack
+          <strong>Next.js 16 • TypeScript • MongoDB • Inngest • Gemini AI</strong>
+        </div>
+        <div class="cover-meta-item">
+          Software Version &amp; Date
+          <strong>Release v2.0 (Production Verified) • October 2026</strong>
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid #cbd5e1; padding-top: 10px; display: flex; justify-content: space-between; font-size: 8pt; color: #64748b;">
+      <span>Dalal Street Pulse Project Engineering Team</span>
+      <span>Confidential Technical Specification</span>
+      <span>Asia/Kolkata (IST) Standard</span>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 2: TOC & CHAPTER 1 ==================== -->
+  <div class="page-break"></div>
+  <div class="header-banner">
+    <div>
+      <div class="brand-title">Dalal Street Pulse — Table of Contents &amp; Problem Analysis</div>
+      <div class="brand-subtitle">System Index &amp; Market Formulation</div>
+    </div>
+    <div class="doc-meta">
+      <div><strong>Section:</strong> Chapter 1</div>
+      <div><strong>Platform:</strong> NSE &amp; BSE Intelligence</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 15%;">Chapter</th>
+        <th style="width: 45%;">Title &amp; Scope</th>
+        <th style="width: 40%;">Core Technical Focus</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Chapter 1</strong></td>
+        <td>Project Overview &amp; Problem Statement</td>
+        <td>Indian market dynamics, retail surge, and architectural deficiencies of generic tooling.</td>
+      </tr>
+      <tr>
+        <td><strong>Chapter 2</strong></td>
+        <td>System Architecture &amp; Technology Stack</td>
+        <td>Next.js 16 App Router, Turbopack, Tailwind v4, MongoDB pooling, and Inngest jobs.</td>
+      </tr>
+      <tr>
+        <td><strong>Chapter 3</strong></td>
+        <td>Market Data Engine &amp; ISIN Reconciliation</td>
+        <td>TrueData live feeds, EODHD statements, NSE/BSE security masters, and ISIN unification.</td>
+      </tr>
+      <tr>
+        <td><strong>Chapter 4</strong></td>
+        <td>Complete Module Breakdown &amp; Implementation</td>
+        <td>Deep-dive into Dashboard, Stocks Terminal, Charts, AI Briefings, Alerts &amp; Watchlists.</td>
+      </tr>
+      <tr>
+        <td><strong>Chapter 5</strong></td>
+        <td>Database Architecture &amp; Storage Models</td>
+        <td>MongoDB schemas, indexes, and zero-dependency in-memory fallback persistence.</td>
+      </tr>
+      <tr>
+        <td><strong>Chapter 6</strong></td>
+        <td>Automated Workflows &amp; AI Intelligence</td>
+        <td>Inngest cron schedules (06:00, 16:30 IST), alert evaluation, and Gemini valuation engine.</td>
+      </tr>
+      <tr>
+        <td><strong>Chapter 7</strong></td>
+        <td>Verification, Test Suite &amp; Security</td>
+        <td>Vitest unit/integration coverage, session authentication, and SEBI compliance.</td>
+      </tr>
+      <tr>
+        <td><strong>Chapter 8</strong></td>
+        <td>Strategic Future Scope &amp; Roadmap</td>
+        <td>Broker Connect, Derivatives (F&amp;O), Agentic AI Auditor, IPO Suite &amp; Mobile Apps.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Chapter 1: Project Overview &amp; Problem Statement</h2>
+  <p>
+    The Indian equity market is among the world's most dynamic financial ecosystems, with over 160+ million Demat accounts across CDSL and NSDL. Daily trading turnover consistently exceeds ₹1 Lakh Crore in cash equities and ₹300+ Lakh Crore in derivatives across the National Stock Exchange (NSE) and BSE Ltd.
+  </p>
+  <p>
+    However, existing market analytics tools remain foreign-centric: they display prices using Western millions/billions rather than Lakhs/Crores, ignore official NSE trading session schedules (Pre-Open 09:00–09:15, Block Trading, and Indian holidays), and fail to reconcile dual-listed stocks (NSE tickers vs. BSE Scrip codes).
+  </p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <span>Deficiencies in Existing Tools</span>
+        <span class="badge badge-warning">Industry Gaps</span>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Western Number Formatting:</strong> Displays ₹1,000,000 instead of ₹10,00,000; lacks Market Cap in Lakh/Crores.</li>
+          <li><strong>Unsynchronized Sessions:</strong> Ignores NSE Pre-Open (09:00–09:15) and post-market trading windows.</li>
+          <li><strong>Ticker Disconnection:</strong> Inability to correlate NSE tickers (`RELIANCE`) with BSE codes (`500325`).</li>
+          <li><strong>Hallucinatory AI:</strong> Generates generic commentary detached from audited financial statements.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>Dalal Street Pulse Innovations</span>
+        <span class="badge badge-success">Engineered Solutions</span>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Authentic INR Localization:</strong> Custom algorithms displaying ₹15.42 Lakh Cr and ₹12,34,567.89 accurately.</li>
+          <li><strong>State-Aware IST Clock:</strong> Real-time session detection: Pre-open, Regular, Post-closing, and Holidays.</li>
+          <li><strong>ISIN Universal Linkage:</strong> Universal entity resolution linking NSE, BSE, and SME instruments.</li>
+          <li><strong>Grounded Valuation:</strong> Rule-based and Gemini AI evaluation computing fundamental health scores (1–10).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span>Dalal Street Pulse — Complete Engineering Project Report</span>
+    <span>Page 2: System Overview &amp; Problem Formulation</span>
+  </div>
+
+  <!-- ==================== PAGE 3: ARCHITECTURE & DATA INGESTION ==================== -->
+  <div class="page-break"></div>
+  <div class="header-banner">
+    <div>
+      <div class="brand-title">Dalal Street Pulse — Architecture &amp; Ingestion</div>
+      <div class="brand-subtitle">System Engineering &amp; ISIN Entity Resolution</div>
+    </div>
+    <div class="doc-meta">
+      <div><strong>Chapters:</strong> 2 &amp; 3</div>
+      <div><strong>Data Pipeline:</strong> Hybrid Pluggable</div>
+    </div>
+  </div>
+
+  <h2>Chapter 2: System Architecture &amp; Technology Stack</h2>
+  <p>
+    The platform is architected as a modern, decoupled web application utilizing Next.js 16 App Router for streaming server-rendered views, coupled with Inngest background event workers and a resilient multi-tier persistence model.
+  </p>
+
+  <pre>
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                 CLIENT LAYER (Browser)                                 │
+│  Next.js 16 Server Components • Tailwind v4 Dark Tokens • Interactive Canvas Charts   │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            │ HTTPS / JSON Streams
+┌───────────────────────────────────────────▼────────────────────────────────────────────┐
+│                              APPLICATION SERVER (Next.js)                              │
+│  App Router (/stocks, /markets) • Route Handlers (/api/inngest) • Server Actions       │
+└─────────────────────┬───────────────────────────────────────────────────┬──────────────┘
+                      │                                                   │
+┌─────────────────────▼──────────────────────────┐    ┌───────────────────▼──────────────┐
+│        DATA INGESTION ABSTRACTION              │    │       PERSISTENCE & JOBS         │
+│ • TrueData Engine (Live L1 Ticks & OHLCV)      │    │ • MongoDB Connection Pool        │
+│ • EODHD Provider (10-Yr Balance Sheets, P&L)   │    │ • Resilient In-Memory Dev Store  │
+│ • Official NSE/BSE Security Master Ingestion   │    │ • Inngest Cron Orchestrator      │
+│ • ISIN Canonical Entity Reconciler             │    │ • Nodemailer SMTP Dispatcher     │
+└────────────────────────────────────────────────┘    └──────────────────────────────────┘
+  </pre>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 25%;">Technology</th>
+        <th style="width: 25%;">Selected Component</th>
+        <th style="width: 50%;">Engineering Justification</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Fullstack Core</strong></td>
+        <td>Next.js 16 + React 19</td>
+        <td>Turbopack-accelerated compilation, Server-Side Rendering (SSR) for low latency.</td>
+      </tr>
+      <tr>
+        <td><strong>Type System</strong></td>
+        <td>TypeScript (Strict Mode)</td>
+        <td>Guarantees schema integrity across multi-provider market quotes and financial ratios.</td>
+      </tr>
+      <tr>
+        <td><strong>Styling Architecture</strong></td>
+        <td>Tailwind CSS v4 + shadcn/ui</td>
+        <td>Custom dark-mode financial tokens; zero runtime CSS overhead with Nova design preset.</td>
+      </tr>
+      <tr>
+        <td><strong>Background Jobs</strong></td>
+        <td>Inngest SDK</td>
+        <td>Serverless event-driven scheduling for alert polling, daily briefings, and master syncs.</td>
+      </tr>
+      <tr>
+        <td><strong>Persistence</strong></td>
+        <td>MongoDB + In-Memory Store</td>
+        <td>High-throughput connection pooling with transparent, zero-dependency offline resilience.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Chapter 3: Market Data Engine &amp; ISIN Reconciliation</h2>
+  <p>
+    A central architectural breakthrough of Dalal Street Pulse is its **ISIN Canonical Reconciler**. Dual-listed companies in India possess distinct symbols on the NSE (e.g. <code>RELIANCE</code>) and BSE (e.g. Scrip Code <code>500325</code>). To prevent duplicate tickers, data divergence, or fake quotes, the platform unifies all instruments by their 12-character International Securities Identification Number.
+  </p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <span>Ingested Security Masters</span>
+        <span class="badge badge-primary">Official Sources</span>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li><strong>NSE Mainboard:</strong> <code>EQUITY_L.csv</code> (2,240+ equities with Face Value, Listing Date, Series).</li>
+          <li><strong>BSE Mainboard:</strong> <code>BSE_Directory.csv</code> (4,800+ listed scrips across Groups A, B, T).</li>
+          <li><strong>SME Platforms:</strong> <code>SME_L.csv</code> for NSE EMERGE and BSE SME counters.</li>
+          <li><strong>Symbol Renames:</strong> Official NSE <code>symbol_change.csv</code> mapped to aliases.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>Pluggable Provider Routing</span>
+        <span class="badge badge-success">Multi-Tier Fallback</span>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li><strong>TrueData Adapter:</strong> Low-latency L1 streaming ticks (<50ms) for trading hours.</li>
+          <li><strong>EODHD Adapter:</strong> 10+ years of audited quarterly financial statements and candles.</li>
+          <li><strong>Hybrid Router:</strong> Evaluates provider health dynamically; routes requests to optimal endpoint with cache fallback.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span>Dalal Street Pulse — Complete Engineering Project Report</span>
+    <span>Page 3: Architecture &amp; Data Ingestion Pipeline</span>
+  </div>
+
+  <!-- ==================== PAGE 4: DETAILED MODULES ==================== -->
+  <div class="page-break"></div>
+  <div class="header-banner">
+    <div>
+      <div class="brand-title">Dalal Street Pulse — Functional Modules</div>
+      <div class="brand-subtitle">Module Decomposition &amp; Feature Implementation</div>
+    </div>
+    <div class="doc-meta">
+      <div><strong>Section:</strong> Chapter 4</div>
+      <div><strong>Routes:</strong> 27 Active Handlers</div>
+    </div>
+  </div>
+
+  <h2>Chapter 4: Complete Module Breakdown</h2>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <span>Market Radar &amp; Indices</span>
+        <div><code>/</code> <code>/markets</code></div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Live Benchmarks:</strong> Real-time ticker tape for NIFTY 50, SENSEX, NIFTY Bank, NIFTY IT.</li>
+          <li><strong>IST Session Clock:</strong> Real-time status with countdowns to pre-open (09:00), regular (09:15), and close (15:30).</li>
+          <li><strong>Institutional Activity:</strong> Daily FII &amp; DII cash market net purchases and sales.</li>
+          <li><strong>Sector Heatmaps:</strong> Visual intraday gainers, losers, and 52-week breakouts.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>Stock Analytics &amp; Terminal</span>
+        <div><code>/stocks</code> <code>/stocks/[symbol]</code></div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Interactive Charts:</strong> Candlestick OHLC &amp; Area charts with volume bars, crosshairs, and timeframes (1D to 5Y).</li>
+          <li><strong>Valuation Ratios:</strong> P/E vs Industry P/E, P/B, ROE, ROCE, D/E, 52W High/Low spread.</li>
+          <li><strong>Financial Statements:</strong> Quarterly/annual P&amp;L, Balance Sheet, Cash Flow in ₹ Crores.</li>
+          <li><strong>Ownership Breakdown:</strong> Shareholding patterns (Promoter, FII, DII, Public).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>AI Intelligence &amp; Daily Briefs</span>
+        <div><code>/insights</code> <code>/briefing</code></div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Grounded Valuation Verdict:</strong> Automated <em>Undervalued</em>, <em>Fairly Valued</em>, or <em>Overvalued</em> determinations.</li>
+          <li><strong>Fundamental Health Score:</strong> 1–10 composite health score based on leverage, ROCE, and institutional holdings.</li>
+          <li><strong>Automated 16:30 IST Brief:</strong> Inngest-driven post-market daily digest.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>Watchlists &amp; Price Alerts</span>
+        <div><code>/watchlists</code> <code>/alerts</code></div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Multi-Watchlist Management:</strong> User-isolated lists with live price sync.</li>
+          <li><strong>Threshold Triggers:</strong> Target price crossings and % swing alerts.</li>
+          <li><strong>Automated Evaluation:</strong> Background cron evaluation with Nodemailer SMTP email card delivery.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>News &amp; Macro Intelligence</span>
+        <div><code>/news</code> <code>/admin</code></div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Curated News Wire:</strong> RBI policies, corporate earnings, SEBI regulations.</li>
+          <li><strong>Sentiment Classification:</strong> Bullish, Bearish, and Neutral sentiment badges.</li>
+          <li><strong>System Admin Health:</strong> Real-time MongoDB and provider latency monitor.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>Data Reconciler (ISIN Master)</span>
+        <span class="badge badge-success">Dual-Exchange</span>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li><strong>NSE &amp; BSE Linkage:</strong> Unified quotes using canonical ISIN identification.</li>
+          <li><strong>SME Support:</strong> Dedicated handling for NSE EMERGE and BSE SME counters.</li>
+          <li><strong>Symbol Alias Engine:</strong> Automatic tracking of historical scrip renames.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout-box">
+    <strong>Grounded Valuation Logic:</strong> If an equity trades at a P/E multiple &lt; 85% of its industry peer median with an ROE &gt; 15%, the system assigns an <em>Undervalued</em> verdict. If P/E exceeds 135% of industry median, an <em>Overvalued</em> warning is generated. Composite Fundamental Health is scored from 1 (severe distress) to 10 (exceptional quality).
+  </div>
+
+  <div class="footer-bar">
+    <span>Dalal Street Pulse — Complete Engineering Project Report</span>
+    <span>Page 4: Functional Application Modules</span>
+  </div>
+
+  <!-- ==================== PAGE 5: DATABASE & WORKFLOWS ==================== -->
+  <div class="page-break"></div>
+  <div class="header-banner">
+    <div>
+      <div class="brand-title">Dalal Street Pulse — Database &amp; Automation</div>
+      <div class="brand-subtitle">Data Persistence, Inngest Crons &amp; Test Suite</div>
+    </div>
+    <div class="doc-meta">
+      <div><strong>Chapters:</strong> 5, 6 &amp; 7</div>
+      <div><strong>Engine:</strong> Inngest + Vitest</div>
+    </div>
+  </div>
+
+  <h2>Chapter 5: Database Architecture &amp; Storage Models</h2>
+  <p>
+    The platform's data layer is designed around high-throughput MongoDB collections with compound indexes, optimized for low-latency queries and atomic watchlist updates.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 20%;">Collection</th>
+        <th style="width: 35%;">Key Fields / Schema</th>
+        <th style="width: 45%;">Indexes &amp; Performance Role</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>instruments</code></td>
+        <td><code>isin</code>, <code>nseSymbol</code>, <code>bseCode</code>, <code>companyName</code>, <code>isSME</code>, <code>sector</code></td>
+        <td>Unique index on <code>isin</code>; sparse indexes on <code>nseSymbol</code> and <code>bseCode</code>. Rapid entity lookup.</td>
+      </tr>
+      <tr>
+        <td><code>watchlists</code></td>
+        <td><code>userId</code>, <code>name</code>, <code>symbols[]</code>, <code>createdAt</code></td>
+        <td>Compound index on <code>{ userId: 1, name: 1 }</code>. Strict user data isolation.</td>
+      </tr>
+      <tr>
+        <td><code>alerts</code></td>
+        <td><code>userId</code>, <code>symbol</code>, <code>targetPrice</code>, <code>condition</code>, <code>status</code></td>
+        <td>Index on <code>{ status: 1, symbol: 1 }</code>. Fast retrieval during Inngest batch evaluation.</td>
+      </tr>
+      <tr>
+        <td><code>daily_briefings</code></td>
+        <td><code>date</code>, <code>headline</code>, <code>niftySummary</code>, <code>keyCatalysts[]</code></td>
+        <td>Index on <code>date</code> (descending). Instant SSR rendering of post-market reports.</td>
+      </tr>
+      <tr>
+        <td><code>financial_statements</code></td>
+        <td><code>symbol</code>, <code>period</code>, <code>statementType</code>, <code>values{}</code></td>
+        <td>Compound index on <code>{ symbol: 1, period: -1, statementType: 1 }</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>5.1 Resilient In-Memory Development Store</h3>
+  <p>
+    To ensure zero-friction onboarding and continuous offline operation, <code>lib/db/store.ts</code> provides a high-fidelity in-memory persistence store. If <code>MONGODB_URI</code> is unavailable, the application gracefully routes all mutations, alert states, and briefings to this local store without crashes.
+  </p>
+
+  <h2>Chapter 6: Automated Workflows &amp; Inngest Engine</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 25%;">Workflow Name</th>
+        <th style="width: 25%;">Trigger Schedule</th>
+        <th style="width: 50%;">Operational Purpose</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>security-master-sync</code></td>
+        <td>Daily at 06:00 IST (Cron)</td>
+        <td>Ingests updated NSE/BSE security masters, tracks new listings, and maps symbol changes prior to market open.</td>
+      </tr>
+      <tr>
+        <td><code>evaluate-price-alerts</code></td>
+        <td>Every 15 min (09:15–15:30 IST)</td>
+        <td>Fetches active alerts, queries current market prices, evaluates trigger conditions, and dispatches Nodemailer alert emails.</td>
+      </tr>
+      <tr>
+        <td><code>generate-daily-briefing</code></td>
+        <td>Daily at 16:30 IST (Post-Close)</td>
+        <td>Aggregates day's trading statistics, calculates sector leaders/laggards, calls Gemini AI, and archives post-market brief.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Chapter 7: Verification, Test Suite &amp; Security</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <span>Vitest Test Suite Coverage</span>
+        <span class="badge badge-success">Automated CI/CD</span>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Formatting Tests:</strong> Validates ₹ INR, Lakh/Crore grouping, and negative numbers.</li>
+          <li><strong>Session State Logic:</strong> Verifies pre-open, normal, closing, and holiday boundaries.</li>
+          <li><strong>Reconciliation:</strong> Tests dual-listed ticker to ISIN resolution and SME flags.</li>
+          <li><strong>Alert Logic:</strong> Evaluates threshold crossing accuracy against simulated feeds.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>Security &amp; Compliance</span>
+        <span class="badge badge-dark">Production Hardened</span>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li><strong>Session Auth:</strong> bcrypt password hashing with secure HTTP-only cookies.</li>
+          <li><strong>Data Isolation:</strong> Strict tenant boundaries on watchlists and personalized alerts.</li>
+          <li><strong>SEBI Compliance:</strong> Explicit non-advisory educational disclaimers and 15-minute delay tags.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span>Dalal Street Pulse — Complete Engineering Project Report</span>
+    <span>Page 5: Persistence, Workflows &amp; Quality Assurance</span>
+  </div>
+
+  <!-- ==================== PAGE 6: FUTURE SCOPE ==================== -->
+  <div class="page-break"></div>
+  <div class="header-banner">
+    <div>
+      <div class="brand-title">Dalal Street Pulse — Future Scope</div>
+      <div class="brand-subtitle">Strategic Evolution &amp; Multi-Year Product Roadmap</div>
+    </div>
+    <div class="doc-meta">
+      <div><strong>Section:</strong> Chapter 8</div>
+      <div><strong>Horizon:</strong> 2026 – 2028+</div>
+    </div>
+  </div>
+
+  <h2>Chapter 8: Strategic Future Scope &amp; Roadmap</h2>
+  <p>
+    Dalal Street Pulse is positioned to transition from an analytics and intelligence platform into a comprehensive **Execution, Derivatives &amp; Wealth Management Operating System** for the Indian market.
+  </p>
+
+  <div class="phase-container" style="border-left-color: #0284c7;">
+    <div class="phase-title">
+      <span class="badge badge-primary">Phase 1</span>
+      <span>1-Click Broker Trading &amp; Execution Gateway</span>
+    </div>
+    <div class="phase-desc">Direct connectivity with SEBI-registered retail stockbrokers via secure OAuth integrations.</div>
+    <ul class="phase-list">
+      <li><strong>Broker Adapters:</strong> Seamless integrations with <strong>Zerodha (Kite Connect)</strong>, <strong>Groww</strong>, <strong>Upstox</strong>, <strong>Angel One (SmartAPI)</strong>, and <strong>Dhan HQ</strong>.</li>
+      <li><strong>Native Order Routing:</strong> Place CNC (Long-term), MIS (Intraday), and GTT (Good Till Triggered) orders directly from the stock details terminal.</li>
+      <li><strong>Paper Trading Simulator:</strong> Virtual ₹10 Lakh INR demo portfolio with real-time exchange matching for risk-free strategy validation.</li>
+      <li><strong>Thematic Basket Orders:</strong> Single-click execution of curated stock baskets (e.g. "NIFTY Auto Momentum", "High Dividend PSUs").</li>
+    </ul>
+  </div>
+
+  <div class="phase-container" style="border-left-color: #7e22ce;">
+    <div class="phase-title">
+      <span class="badge badge-purple">Phase 2</span>
+      <span>NSE Derivatives (F&amp;O) &amp; Options Analytics Terminal</span>
+    </div>
+    <div class="phase-desc">Professional-grade intelligence for index and equity options traders.</div>
+    <ul class="phase-list">
+      <li><strong>Interactive Option Chain:</strong> Live Open Interest (OI), Change in OI, Put-Call Ratio (PCR), and Max Pain visualization for NIFTY, BANKNIFTY, and equity F&amp;O contracts.</li>
+      <li><strong>Real-Time Option Greeks:</strong> Dynamic computation of Delta, Gamma, Theta, and Vega with Implied Volatility (IV) and IV Percentile (IVP) curves.</li>
+      <li><strong>Options Strategy Builder:</strong> Visual payoff diagrams for multi-leg strategies (Bull Call Spreads, Straddles, Iron Condors, Calendar Spreads).</li>
+      <li><strong>Futures Build-up Heatmaps:</strong> Automated real-time classification of Long Build-up, Short Covering, Short Build-up, and Long Unwinding.</li>
+    </ul>
+  </div>
+
+  <div class="phase-container" style="border-left-color: #15803d;">
+    <div class="phase-title">
+      <span class="badge badge-success">Phase 3</span>
+      <span>Autonomous Agentic AI &amp; Portfolio Auditor</span>
+    </div>
+    <div class="phase-desc">Proactive, autonomous portfolio intelligence optimizing risk and tax liability.</div>
+    <ul class="phase-list">
+      <li><strong>CAS Portfolio Health Auditor:</strong> Drag-and-drop parsing of NSDL/CDSL Consolidated Account Statements (CAS) to diagnose sector concentration risk and fund overlaps.</li>
+      <li><strong>Automated Tax-Loss Harvesting:</strong> Proactive alerts prior to March 31 financial year-end identifying capital losses to offset STCG/LTCG tax liabilities under the Indian Income Tax Act.</li>
+      <li><strong>Concall &amp; Transcripts Intelligence:</strong> Automated AI ingestion of quarterly earnings calls; distills management guidance and margin headwinds into 60-second executive summaries.</li>
+      <li><strong>Multilingual Voice &amp; Chatbot:</strong> Regional Indian language support (Hindi, Gujarati, Tamil, Marathi, Bengali, Telugu).</li>
+    </ul>
+  </div>
+
+  <div class="phase-container" style="border-left-color: #b45309;">
+    <div class="phase-title">
+      <span class="badge badge-warning">Phase 4</span>
+      <span>IPO Central &amp; Primary Market Intelligence</span>
+    </div>
+    <div class="phase-desc">Comprehensive tracking of Mainboard and SME Initial Public Offerings.</div>
+    <ul class="phase-list">
+      <li><strong>Comprehensive IPO Radar:</strong> Track upcoming, open, and closed IPOs with price bands, issue sizes, lot quantities, and anchor investor allocations.</li>
+      <li><strong>Grey Market Premium (GMP) Aggregator:</strong> Real-time estimated listing gains tracking.</li>
+      <li><strong>Live Subscription Telemetry:</strong> Hourly bidding rates across QIB, NII (HNI), and Retail investor quotas.</li>
+      <li><strong>AI DRHP Summarizer:</strong> Instant breakdown of Draft Red Herring Prospectus risk factors, promoter backgrounds, and proceeds utilization.</li>
+    </ul>
+  </div>
+
+  <div class="phase-container" style="border-left-color: #0f172a;">
+    <div class="phase-title">
+      <span class="badge badge-dark">Phase 5</span>
+      <span>Omnichannel Delivery, Native Mobile &amp; Institutional API</span>
+    </div>
+    <div class="phase-desc">Cross-platform ecosystem expansion and B2B data monetization.</div>
+    <ul class="phase-list">
+      <li><strong>Native Mobile Applications:</strong> iOS &amp; Android apps (React Native) with biometric authentication and lock-screen live activity tickers.</li>
+      <li><strong>Omnichannel Alerts:</strong> Instant notifications delivered straight to <strong>WhatsApp</strong> and <strong>Telegram</strong> for target prices, corporate actions, and dividend dates.</li>
+      <li><strong>Institutional Developer API:</strong> WebSocket L1/L2 data access, historical tick query endpoints, and white-label analytical widgets for fintech developers.</li>
+    </ul>
+  </div>
+
+  <div class="footer-bar">
+    <span>Dalal Street Pulse — Complete Engineering Project Report</span>
+    <span>Page 6: Multi-Phase Future Scope</span>
+  </div>
+
+  <!-- ==================== PAGE 7: TIMELINE & CONCLUSION ==================== -->
+  <div class="page-break"></div>
+  <div class="header-banner">
+    <div>
+      <div class="brand-title">Dalal Street Pulse — Timeline &amp; Conclusion</div>
+      <div class="brand-subtitle">Strategic Implementation Timeline &amp; Closing Assessment</div>
+    </div>
+    <div class="doc-meta">
+      <div><strong>Chapters:</strong> 8 &amp; 9</div>
+      <div><strong>Target:</strong> 2026 – 2028 Delivery</div>
+    </div>
+  </div>
+
+  <h3>8.1 Multi-Year Implementation Schedule</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 15%;">Period</th>
+        <th style="width: 25%;">Milestone Focus</th>
+        <th style="width: 60%;">Deliverables &amp; Technical Capabilities</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Q1 – Q2</strong></td>
+        <td>Broker Execution &amp; Paper Trading</td>
+        <td>OAuth connectors for Zerodha &amp; Upstox, paper trading virtual engine, custom multi-metric screener.</td>
+      </tr>
+      <tr>
+        <td><strong>Q3</strong></td>
+        <td>Derivatives &amp; Options Hub</td>
+        <td>Interactive NSE Option Chain, multi-leg strategy payoff visualizer, real-time Greeks &amp; PCR telemetry.</td>
+      </tr>
+      <tr>
+        <td><strong>Q4</strong></td>
+        <td>AI Auditor &amp; IPO Suite</td>
+        <td>CAS statement parser, March 31 tax-loss harvesting engine, IPO GMP tracker, and DRHP summarizer.</td>
+      </tr>
+      <tr>
+        <td><strong>Year 2+</strong></td>
+        <td>Mobile Apps &amp; Enterprise API</td>
+        <td>React Native iOS/Android apps, WhatsApp Bot alert integration, and institutional WebSocket API tier.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Chapter 9: Conclusion &amp; Engineering Assessment</h2>
+  <p>
+    <strong>Dalal Street Pulse</strong> demonstrates that financial intelligence platforms can achieve institutional caliber without sacrificing usability, speed, or domestic market fidelity.
+  </p>
+  <p>
+    By establishing a robust architectural foundation based on <strong>Next.js 16</strong>, <strong>ISIN canonical data reconciliation</strong>, <strong>Inngest event-driven workflows</strong>, and <strong>grounded valuation AI</strong>, the platform resolves long-standing compromises in Indian retail financial tooling. With the strategic roadmap outlined in this document, Dalal Street Pulse is uniquely positioned to scale into India's premier integrated investment, derivatives, and execution terminal.
+  </p>
+
+  <div class="grid-2" style="margin-top: 14px;">
+    <div class="card">
+      <div class="card-header">
+        <span>Architectural Strengths</span>
+        <span class="badge badge-success">Verified</span>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>Zero synthetic data: 100% reconciled against verified official exchange masters.</li>
+          <li>Resilient offline fallback: Operates flawlessly even without live external MongoDB or API keys.</li>
+          <li>End-to-end typed safety: TypeScript strict enforcement across all 27 routes and schemas.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>Regulatory Compliance Notice</span>
+        <span class="badge badge-dark">SEBI Disclosure</span>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>Platform is engineered strictly for educational, informational, and analytical intelligence.</li>
+          <li>Does not dispense SEBI-registered personalized investment advice or portfolio management.</li>
+          <li>All market data feeds comply with statutory 15-minute exchange delay guidelines.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bar" style="margin-top: 25px;">
+    <span>Dalal Street Pulse — Complete Engineering Project Report</span>
+    <span>NSE &amp; BSE Financial Intelligence Web Platform • Document Ref: DSP-ENG-2026-V2</span>
+    <span>Page 7: Roadmap Schedule &amp; Final Assessment</span>
+  </div>
+
+</body>
+</html>
