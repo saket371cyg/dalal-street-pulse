@@ -454,6 +454,7 @@ export const SEED_BSE_SECURITIES: RawBseSecurityRecord[] = [
 export const SEED_SYMBOL_CHANGES: RawSymbolChangeRecord[] = [
   { companyName: 'LTIMindtree Limited', oldSymbol: 'MINDTREE', newSymbol: 'LTIM', changeDate: '2022-11-24' },
   { companyName: 'Tata Motors Limited - DVR', oldSymbol: 'TATAMTRDVR', newSymbol: 'TATAMOTORS', changeDate: '2024-09-01' },
+  { companyName: 'Tata Motors Limited', oldSymbol: 'TATAMOTORS', newSymbol: 'TMCV', changeDate: '2025-01-01' },
   { companyName: 'Samvardhana Motherson International Limited', oldSymbol: 'MOTHERSUMI', newSymbol: 'MOTHERSON', changeDate: '2022-03-28' },
   { companyName: 'Zydus Lifesciences Limited', oldSymbol: 'CADILAHC', newSymbol: 'ZYDUSLIFE', changeDate: '2022-03-07' },
   { companyName: 'Eternal Limited (formerly Zomato)', oldSymbol: 'ZOMATO', newSymbol: 'ETERNAL', changeDate: '2025-02-14' },

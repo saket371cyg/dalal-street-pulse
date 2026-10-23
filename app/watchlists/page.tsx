@@ -69,7 +69,22 @@ export default function WatchlistsPage() {
     enabled: activeSymbols.length > 0,
   });
 
-  const mergedQuotes = { ...quotes, ...liveQuotes };
+  const mergedQuotes = useMemo(() => {
+    const result: Record<string, StockQuote> = { ...quotes };
+    for (const [sym, lq] of Object.entries(liveQuotes)) {
+      const existing = result[sym];
+      if (!existing) {
+        result[sym] = lq;
+      } else {
+        const existingTime = new Date(existing.lastUpdated || 0).getTime();
+        const liveTime = new Date(lq.lastUpdated || 0).getTime();
+        if (liveTime >= existingTime || (existing.currentPrice <= 0 && lq.currentPrice > 0)) {
+          result[sym] = lq;
+        }
+      }
+    }
+    return result;
+  }, [quotes, liveQuotes]);
 
   // Fetch initial quotes for active watchlist symbols
   useEffect(() => {

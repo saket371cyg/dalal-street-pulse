@@ -90,18 +90,26 @@ export class TrueDataProvider implements MarketDataProvider {
     // 1. Check live WebSocket feed cache first
     const feedManager = getTrueDataFeedManager();
     const liveQuote = feedManager.getCachedQuote(cleanSymbol);
-    if (liveQuote && liveQuote.freshness === 'live') {
-      return liveQuote;
+    if (liveQuote) {
+      const dynamicFreshness = feedManager.evaluateFreshness(liveQuote.lastUpdated);
+      if (dynamicFreshness === 'live') {
+        return {
+          ...liveQuote,
+          freshness: 'live',
+        };
+      }
     }
 
     // 2. Query live data from public financial feed (Yahoo Finance live stream)
     // Tries primary exchange first, then seamlessly falls back to alternate exchange for BSE-only/NSE-only counters
+    // Also resolve corporate demerger tickers like TATAMOTORS -> TMCV
+    const resolvedSymbol = cleanSymbol === 'TATAMOTORS' ? 'TMCV' : cleanSymbol;
     const candidateExchanges: Exchange[] = exchange === 'BSE' ? ['BSE', 'NSE'] : ['NSE', 'BSE'];
 
     for (const candEx of candidateExchanges) {
       try {
         const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-        const yahooSym = candEx === 'BSE' ? `${cleanSymbol}.BO` : `${cleanSymbol}.NS`;
+        const yahooSym = candEx === 'BSE' ? `${resolvedSymbol}.BO` : `${resolvedSymbol}.NS`;
         const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSym)}?range=1d&interval=5m`;
         const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(4000) });
         if (res.ok) {
@@ -295,7 +303,8 @@ export class TrueDataProvider implements MarketDataProvider {
     for (const suffix of candidateSuffixes) {
       try {
         const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-        const yahooSym = `${cleanSymbol}${suffix}`;
+        const resolvedHistorySym = cleanSymbol === 'TATAMOTORS' ? 'TMCV' : cleanSymbol;
+        const yahooSym = `${resolvedHistorySym}${suffix}`;
 
         const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSym)}?range=${rangeMap[timeframe]}&interval=${intervalMap[timeframe]}`, {
           headers: { 'User-Agent': UA },

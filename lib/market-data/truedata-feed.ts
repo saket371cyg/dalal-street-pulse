@@ -107,6 +107,9 @@ export class TrueDataFeedManager extends EventEmitter {
       this.state = 'EVALUATION_STANDBY';
       this.connectionError = 'TrueData credentials (TRUE_DATA_USERNAME / TRUE_DATA_PASSWORD) not configured. Feed running in evaluation standby mode.';
       this.startEvaluationSimulation();
+      // Proactively pre-warm cache with live quotes for key benchmark stocks
+      const benchmarks = ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'BHARTIARTL', 'ITC', 'SBIN', 'LT', 'HINDUNILVR', 'TATAMOTORS'];
+      this.fetchPublicQuotes(benchmarks).catch(() => {});
     }
   }
 
@@ -365,7 +368,7 @@ export class TrueDataFeedManager extends EventEmitter {
       try {
         const payload = {
           method: 'addsymbol',
-          symbols: toAdd,
+          symbols: toAdd.length > 0 ? toAdd : symbols,
         };
         this.ws.send(JSON.stringify(payload));
       } catch (err) {
@@ -373,7 +376,7 @@ export class TrueDataFeedManager extends EventEmitter {
       }
     } else if (!this.hasValidCredentials()) {
       // In public feed mode, immediately query genuine quotes for subscribed symbols
-      this.fetchPublicQuotes(toAdd).catch(() => {});
+      this.fetchPublicQuotes(symbols).catch(() => {});
     }
   }
 
@@ -436,7 +439,12 @@ export class TrueDataFeedManager extends EventEmitter {
 
   public getCachedQuote(symbol: string): StockQuote | null {
     const { cleanSymbol } = normalizeIndianSymbol(symbol);
-    return this.quoteCache.get(cleanSymbol) || null;
+    const quote = this.quoteCache.get(cleanSymbol);
+    if (!quote) return null;
+    return {
+      ...quote,
+      freshness: this.evaluateFreshness(quote.lastUpdated),
+    };
   }
 
   public getAllCachedQuotes(): StockQuote[] {
@@ -449,18 +457,33 @@ export class TrueDataFeedManager extends EventEmitter {
   public async fetchPublicQuote(cleanSymbol: string): Promise<StockQuote | null> {
     try {
       const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-      const yahooSym = `${cleanSymbol}.NS`;
-      const res = await fetch(
-        `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSym)}?range=1d&interval=5m`,
-        {
-          headers: { "User-Agent": UA },
-          signal: AbortSignal.timeout(4000),
-        }
-      );
+      const resolved = cleanSymbol === 'TATAMOTORS' ? 'TMCV' : cleanSymbol;
+      
+      let meta: any = null;
+      let usedExchange: Exchange = 'NSE';
 
-      if (!res.ok) return null;
-      const data = await res.json();
-      const meta = data?.chart?.result?.[0]?.meta;
+      for (const ex of ['.NS', '.BO']) {
+        try {
+          const yahooSym = `${resolved}${ex}`;
+          const res = await fetch(
+            `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSym)}?range=1d&interval=5m`,
+            {
+              headers: { "User-Agent": UA },
+              signal: AbortSignal.timeout(4000),
+            }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            const foundMeta = data?.chart?.result?.[0]?.meta;
+            if (foundMeta && foundMeta.regularMarketPrice) {
+              meta = foundMeta;
+              usedExchange = ex === '.BO' ? 'BSE' : 'NSE';
+              break;
+            }
+          }
+        } catch {}
+      }
+
       if (!meta || !meta.regularMarketPrice) return null;
 
       const current = this.quoteCache.get(cleanSymbol) || VERIFIED_INDIAN_STOCKS[cleanSymbol]?.quote;
@@ -475,12 +498,12 @@ export class TrueDataFeedManager extends EventEmitter {
 
       const quote: StockQuote = {
         symbol: cleanSymbol,
-        exchange: 'NSE',
+        exchange: usedExchange,
         companyName: meta.shortName || meta.longName || current?.companyName || cleanSymbol,
         currentPrice,
         change,
         percentChange,
-        open: Number((meta.regularMarketDayLow || current?.open || currentPrice).toFixed(2)),
+        open: Number((meta.regularMarketOpen || meta.regularMarketDayLow || current?.open || currentPrice).toFixed(2)),
         high: Number((meta.regularMarketDayHigh || current?.high || currentPrice).toFixed(2)),
         low: Number((meta.regularMarketDayLow || current?.low || currentPrice).toFixed(2)),
         previousClose: prevClose,
